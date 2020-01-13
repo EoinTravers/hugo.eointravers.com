@@ -53,7 +53,7 @@ outlier_pars
      'p_outlier': 0.1,
      'k': 3}
 
-
+> Psst! Like that nifty `Toggle Code` button? Read [this post](../jupyter-toggle/) to see how it's made.
 
 ## Long Version
 

@@ -40,10 +40,15 @@ for i in range(9, -1, -1):
 
 
 ```python
+%matplotlib inline
 import matplotlib.pyplot as plt
 import numpy as np
 plt.hist(np.random.normal(0, 1, 100));
 ```
+
+
+![png](./index_3_0.png)
+
 
 ## Jupyter Magic
 
