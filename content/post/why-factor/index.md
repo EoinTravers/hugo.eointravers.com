@@ -1,12 +1,11 @@
 ---
 title: "The Why Factor (BBC): Why are we conscious of so little?"
-date: 2020-01-27
+date: 2020-02-17
 category:
 tags:
 slug: why-factor
 author: admin
 summary: "They let me on the radio"
-draft: true
 ---
 
 A few months ago
@@ -67,16 +66,45 @@ whereever the arrows were pointing.
 ![Figure 1](figure1.png)
 
 
-## AUDITORY Masked Priming
+## Auditory Masked Priming
 
 This is a nice result, and the task makes for a pretty cool visual demonstration:
 you can show the stimuli slowly, so they're consciously perceived,
 then show them quickly, so they aren't.
 Unfortunately, this was a radio show.
 
+Luckily,
+some clever people in Paris
+([Kouider, de Gardelle, Dehaene, Dupoux & Pallier, 2010](http://www.pallier.org/papers/Kouider.Pallier.subliminal.priming.fmri.2009.pdf);
+[Kouider & Dopoux, 2005](https://sidkouider.com/wp-content/uploads/2018/05/ExternalLink_Kouider-Dupoux_PsychScience2005.pdf))
+have come up with a way of doing this with sounds.
+By speeding up spoken words,
+and playing them along with distracting speech-like background sounds,
+they were able to present participants with words that they heard,
+but didn't know they had heard.
+This is the perfect way to adapt our usual subliminal priming demo for the radio.
 
+## Making it work
 
+I've posted the code used to generate these audio segments to [GitHub](https://github.com/EoinTravers/AuditoryPriming).
 
+To make them, I
+
+- Convinced friends and colleagues to lend me their voices:
+  a woman to say "left" and "right" (targets),
+  and a man to say those words plus some fillers (primes and masks).
+- Manually edited the recordings in audacity so that all of the targets,
+  and all of the primes and masks, were the same length.
+  This can be done by slightly speeding up or slowing down segments,
+  or by cutting out windows from the audio to shorten vowel sounds.
+- Wrote a python script, using [Pydub](http://pydub.com/) and
+  [FFmpeg](https://www.ffmpeg.org/)
+  (called using the [ffmpy](https://pypi.org/project/ffmpy/) wrapper), to
+    - Compress the primes and masks
+    - Reverse the masks
+    - Combine the primes, masks, and targets to produce the audio stimuli.
+
+I hope this code might be useful to someone down the line.
 
 
 <style>
