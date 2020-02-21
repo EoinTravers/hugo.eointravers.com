@@ -278,7 +278,12 @@ $$
 All of this means that the standard deviation of $x+y$ is
 
 $$
-SD(x+y) = \sigma_{x+y} = \sqrt{\sigma^2_{x+y}} = \sqrt{\sigma^2_{x} + \sigma^2_{y} + 2 \times cov(x, y)};
+\begin{align} 
+SD(x+y)
+=& \sigma_{x+y}\\
+=& \sqrt{\sigma^2_{x+y}}\\
+=& \sqrt{\sigma^2_{x} + \sigma^2_{y} + 2 \times cov(x, y)};
+\end{align}
 $$
 
 When $x$ and $y$ are uncorrelated, this is just
@@ -321,8 +326,10 @@ $$
 Division works in the same way:
 
 $$
-sd(\frac{x}{k}) = \sigma_{\frac{x}{k}} = \frac{\sigma_x}{k};\\
-var(\frac{x}{k}) = \sigma^2_{x/k} = (\frac{\sigma_x}{k})^2 = \frac{\sigma^2_x}{k^2};
+\begin{align}
+sd(\frac{x}{k}) =& \sigma_{\frac{x}{k}} = \frac{\sigma_x}{k};\\
+var(\frac{x}{k}) =& (\sigma_{\frac{x}{k}})^2 = (\frac{\sigma_x}{k})^2 = \frac{\sigma^2_x}{k^2};
+\end{align}
 $$
 
 Here's the proof.

@@ -303,7 +303,12 @@ $$
 All of this means that the standard deviation of $x+y$ is
 
 $$
-SD(x+y) = \sigma_{x+y} = \sqrt{\sigma^2_{x+y}} = \sqrt{\sigma^2_{x} + \sigma^2_{y} + 2 \times cov(x, y)};
+\begin{align} 
+SD(x+y)
+=& \sigma_{x+y}\\\\
+=& \sqrt{\sigma^2_{x+y}}\\\\
+=& \sqrt{\sigma^2_{x} + \sigma^2_{y} + 2 \times cov(x, y)};
+\end{align}
 $$
 
 When $x$ and $y$ are uncorrelated, this is just
@@ -346,8 +351,10 @@ $$
 Division works in the same way:
 
 $$
-sd(\frac{x}{k}) = \sigma_{\frac{x}{k}} = \frac{\sigma_x}{k};\\\\
-var(\frac{x}{k}) = \sigma^2_{x/k} = (\frac{\sigma_x}{k})^2 = \frac{\sigma^2_x}{k^2};
+\begin{align}
+sd(\frac{x}{k}) =& \sigma_{\frac{x}{k}} = \frac{\sigma_x}{k};\\\\
+var(\frac{x}{k}) =& (\sigma_{\frac{x}{k}})^2 = (\frac{\sigma_x}{k})^2 = \frac{\sigma^2_x}{k^2};
+\end{align}
 $$
 
 Here's the proof.
@@ -407,12 +414,13 @@ $$
 $$
 
 In other words, 
-*when you average two variables together, you half the variance, or divide the standard deviation by*  $\sqrt{2}$.
+*when you average two variables together, you half the variance, or divide the standard deviation by*
+$\sqrt{2}$.
 
 If $x$ and $y$ are correlated, as before
-$\sigma^2_{\frac{x+y}{2}} = \dfrac{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}{2^2}$
+$\sigma^2_{\frac{x+y}{2}} = \frac{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}{2^2}$
 and
-$\sigma_{\frac{x+y}{2}} = \dfrac{\sqrt{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}}{2}$,
+$\sigma_{\frac{x+y}{2}} = \frac{\sqrt{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}}{2}$,
 but let's not worry about that too much.
 
 
