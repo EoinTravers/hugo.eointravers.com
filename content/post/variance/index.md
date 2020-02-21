@@ -409,8 +409,10 @@ $$
 If $\sigma^2 = \sigma^2_x = \sigma^2_y$, this simplifies to
 
 $$
-\sigma^2_{Mean(x,y)} = \dfrac{2\sigma^2_x}{2^2} = \frac{1}{2}\sigma^2_x; \\\\
-\sigma_{Mean(x,y)} = \sqrt{\frac{1}{2}\sigma^2_x} = \frac{1}{\sqrt{2}}\sigma_x; \\\\
+\begin{align}
+\sigma^2_{Mean(x,y)} =& \dfrac{2\sigma^2_x}{2^2} = \frac{1}{2}\sigma^2_x; \\\\
+\sigma_{Mean(x,y)}   =& \sqrt{\frac{1}{2}\sigma^2_x} = \frac{1}{\sqrt{2}}\sigma_x; \\\\
+\end{align}
 $$
 
 In other words, 
