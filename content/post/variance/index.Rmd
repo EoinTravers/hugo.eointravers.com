@@ -12,11 +12,11 @@ toggle: "true"
 
 You can't understand statistics without understanding variance.
 Unfortunately, there are some important bits of information
-about variance - and it's cousin the standard deviation - 
-that I don't remember ever being taught in one place.
+about variance that I don't remember ever being taught as a whole.
 I've put these tidbits together in one place
 so you don't have to piece them together from textbooks and
 [wikipedia](https://en.wikipedia.org/wiki/Variance).
+
 
 
 # 1. Definitions
@@ -43,13 +43,15 @@ $$
 $$
 
 
-Sample standard deviation, $\sigma$ is the square root of the sample variance.
+Sample **standard deviation**, $\sigma$ is the square root of the sample variance.
 This is simple, but also easy to say the wrong way around, 
 so let's write it down.
 
 $$
-\sigma = \sqrt{\sigma^2}\\
-\text{Standard deviation} = \sqrt{\text{Variance}}
+\begin{align} 
+                   \sigma =& \sqrt{\sigma^2};\\
+\text{Standard deviation} =& \sqrt{\text{Variance}};
+\end{align}
 $$
 
 We can also talk about the *precision*, $\lambda$, which is just 1 divided by the variance.
@@ -65,7 +67,7 @@ For reasons that I won't fully explain here
 our best estimate of the variance of the population that $x$ was sampled from 
 isn't actually $\frac{\sum_i^n (x_i - \mu)^2}{n}$
 but $\frac{\sum_i^n (x_i - \mu)^2}{n-1}$.
-The corresponding population standard deviaiton is
+The corresponding population standard deviation is
 $\sqrt{\frac{\sum_i^n (x_i - \mu)^2}{n-1}}$.
 
 Software like R and numpy will give you the population estimate, using $n-1$,
@@ -148,8 +150,10 @@ my = mean(y)
 We can flip this around to show that 
 
 $$
-cov(x, y) = cor(x, y) \times sd(x) \times sd(y);\\
-\sigma_{x,y} = \rho_{xy}\sigma_x\sigma_y
+\begin{align} 
+cov(x, y) =& cor(x, y) \times sd(x) \times sd(y);\\
+\sigma_{x,y} =& \rho_{xy}\sigma_x\sigma_y;
+\end{align}
 $$
 
 ## Covariance Matrices
@@ -206,7 +210,7 @@ the variance of $x+y$ and of $x-y$ is $\sigma^2_x + \sigma^2_y$.
 
 $$\sigma^2_{x+y} = \sigma^2_{x} + \sigma^2_{y}$$
 
-Note that $\textbf{x} + y = [x_1 + y_1, x_2 + y_2, ..., x_n + y_n]$, etc.
+Note that $x + y = [x_1 + y_1, x_2 + y_2, ..., x_n + y_n]$, etc.
 
 Here's a demonstration.
 
@@ -312,7 +316,7 @@ $$
 var(k \times x) = \sigma^2_{kx} = (k\times \sigma_x)^2 = k^2 \times \sigma_x^2
 $$
 
-*If we multiply $x$ by $k$, we multiply it's standard deviation by $k$, and it's variance by $k^2$*.
+*If we multiply $x$ by $k$, we multiply its standard deviation by $k$, and it's variance by $k^2$*.
 
 Division works in the same way:
 
@@ -366,14 +370,15 @@ $$
 \sigma^2_{Mean(x,y)} = \dfrac{2\sigma^2_x}{2^2} = \frac{1}{2}\sigma^2_x; \\
 \sigma_{Mean(x,y)} = \sqrt{\frac{1}{2}\sigma^2_x} = \frac{1}{\sqrt{2}}\sigma_x; \\
 $$
+
 In other words, 
-*when you average two variables together, you half the variance, or divide the standard deviation by* 
+*when you average two variables together, you half the variance, or divide the standard deviation by*
 $\sqrt{2}$.
 
 If $x$ and $y$ are correlated, as before
-$\sigma^2_{\frac{x+y}{2}} = \dfrac{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}{2^2}$
+$\sigma^2_{\frac{x+y}{2}} = \frac{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}{2^2}$
 and
-$\sigma_{\frac{x+y}{2}} = \dfrac{\sqrt{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}}{2}$,
+$\sigma_{\frac{x+y}{2}} = \frac{\sqrt{\sigma^2_x + \sigma^2_y + 2\times \sigma_{x,y}}}{2}$,
 but let's not worry about that too much.
 
 
@@ -463,5 +468,4 @@ I might cover these in a future post:
 - Variance and uncertainty of frequentist estimates.
 - Working with samples from posterior distributions.
 - Comparing and combining regression parameters (F-Contrasts).
-
 
