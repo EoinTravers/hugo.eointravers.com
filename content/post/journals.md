@@ -11,7 +11,9 @@ summary: It's a lot (and prestige costs more)
 A few weeks back, I put together a Google Sheets document
 listing the [various fees charged by a few popular journals in our field](https://docs.google.com/spreadsheets/d/1E67ONXzXib5i6JeR9ushlE5VL8NtA4vHnomubs64I1M/edit?usp=sharing).
 
-<p><iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPFrMZsmz22yL823lqbLAQ6mCygqxHw67FKD7x4LEfRATOh_N72tp-ap2wu6nb8zFz3uBasWpRHXiw" frameborder="0" width="800" height="600" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></p>
+<iframe
+    style="width:100%; height: 20em;"
+    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPFrMZsmz22yL823lqbLAQ6mCygqxHw67FKD7x4LEfRATOh_N72tp-ap2wu6nb8zFz3uBasWpRHXiw/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false"></iframe>
 
 The document is editable, so it has grown well beyond the handful of journals I looked up myself.
 Hopefully, this will be a useful resource for other researchers
