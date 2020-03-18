@@ -8,7 +8,9 @@ author: admin
 ---
 
 > You can find and comment on a possibly more up-to-date version of
-> this post in [this Google Doc](https://docs.google.com/document/d/1wO6AzP1vmFZyPWUC_fCyfIRXz8aeJsXDUGtbHoNPAiw/edit?usp=sharing)
+> this post in [this Google Doc](https://docs.google.com/document/d/1wO6AzP1vmFZyPWUC_fCyfIRXz8aeJsXDUGtbHoNPAiw/edit?usp=sharing),
+> some some Twitter chatter here:
+> <blockquote class="twitter-tweet"><p lang="en" dir="ltr">My <a href="https://twitter.com/hashtag/COVID2019?src=hash&amp;ref_src=twsrc%5Etfw">#COVID2019</a> contribution:<br>It would be useful to collect self-reported health updates en masse online across the UK, not just from people going to the doctor. I know how to do this, but I&#39;m not an epidemiologist. That&#39;s why I&#39;m asking for help. <a href="https://t.co/8yay9fQyN1">https://t.co/8yay9fQyN1</a><br>1/3</p>&mdash; Eoin Travers (@TraversEoin) <a href="https://twitter.com/TraversEoin/status/1240219358888067073?ref_src=twsrc%5Etfw">March 18, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 Like most scientists, I’ve been sitting at home watching the news, and
 asking myself if there is anything I could do to help. I’m a cognitive
@@ -128,14 +130,14 @@ be publicly released is in **bold**.
 - Sex
 - **Postcode** (if full postcode is provided, can be reduced to area
   code for public release)
-- **Email **(so individuals can update as symptoms develop)
+- **Email** (so individuals can update as symptoms develop)
 - Travel history (at a provincial level)
 - A socioeconomic status indicator
 - Underlying health complications.
 - Have you tested positive for coronavirus?
 - Symptoms -y best idea at present is to do this in closed form (e.g.
-  *"Fever/Cough/Other (please specify)"*) and open-ended (what
-  symptoms developed and when, although this would require coding). -n
+  *"Fever/Cough/Other [please specify]"*) and open-ended (what
+  symptoms developed and when, although this would require coding). An
   alternative would be to have some kind of nice interface for
   indicating symptom time course, but I don’t know how feasible this
   is with Google Forms.
