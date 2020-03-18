@@ -5,6 +5,7 @@ category:
 tags:
 slug: covid19
 author: admin
+summary: "I think so, but I'm not an epidemiologist, so I'll need some help."
 ---
 
 > You can find and comment on a possibly more up-to-date version of
