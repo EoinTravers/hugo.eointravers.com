@@ -1,11 +1,10 @@
 ---
-title: Should we be Tracking COVID19-like Symptoms using Online Self-Report at Scale?
+title: Should we be tracking COVID19 symptoms online?
 date: 2020-03-18
 category:
 tags:
 slug: covid19
 author: admin
-summary: Some thoughts on some exciting work on intentions, alpha waves, and perceptual biases.
 ---
 
 > You can find and comment on a possibly more up-to-date version of
