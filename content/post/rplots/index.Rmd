@@ -7,7 +7,7 @@ output:
     preserve_yaml: true
   md_document:
     preserve_yaml: true
-summary: "Some find looking ggplot functions I've put together over the years"
+summary: "Some fine looking ggplot functions I've put together over the years"
 source: jupyter
 toggle: "true"
 ---
