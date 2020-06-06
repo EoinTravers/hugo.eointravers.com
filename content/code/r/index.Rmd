@@ -1,0 +1,150 @@
+---
+title: "An R Menagerie"
+author: "admin"
+date: '2020-04-14'
+output:
+  html_document:
+    keep_md: yes
+summary: "My personal collection of R functions"
+---
+
+```{r}
+library(tidyverse)
+```
+
+# Plotting Functions
+
+```{r}
+#' Place ggplot legend in corner specified.
+#' @example
+
+lgnd = function(x, y){
+  theme(legend.position=c(x, y), legend.justification = c(x, y))
+}
+
+```
+
+
+# Summary Functions
+
+
+```{r}
+#' Produce a coefficient table of model coefficients/fixed effects.
+#' Output is a data.frame, which can be passed to further functions.
+coef_table = function(model, digits=2, ci=F){
+  .nicer.col.names = list('Estimate'='b', 
+                          'Std..Error'='se', 
+                          'Pr...t..'='p.value', 
+                          'Pr...z..'='p.value')
+  result = model %>% summary() %>% coef() %>% 
+    data.frame() %>% 
+    rownames_to_column('term') %>% 
+    mutate_if(is.numeric, round, digits=digits)
+  if(ci){
+    conf_intervals = confint(model, method='Wald') %>% 
+      data.frame() %>% 
+      rownames_to_column('term')
+    colnames(conf_intervals) = c('CI_low', 'CI_high')
+    result = left_join(result, conf_intervals, by='term')
+  }
+  .can.replace = colnames(result) %in% names(.nicer.col.names)
+  colnames(result)[.can.replace] = map(colnames(result)[.can.replace],
+                                       ~.nicer.col.names[[.]])
+  result %>% 
+    mutate(term = str_replace(term, '\\(Intercept\\)', 'Intercept'))
+}
+```
+
+ 
+ 
+```{r}
+m = lm(Sepal.Length ~ Sepal.Width*Petal.Width, data=iris)
+coef_table(m)
+```
+
+ 
+
+```{r}
+lmm = lme4::lmer(Sepal.Length ~ Sepal.Width*Petal.Width + (1|Species), data=iris)
+coef_table(lmm)
+```
+
+ 
+
+```{r}
+m2 = glm((Species=='virginica') ~ Sepal.Width*Petal.Width, data=iris, family=binomial)
+coef_table(m2)
+```
+
+# Prettifying Functions
+
+Add a little sparkles to your outputs.
+
+```{r}
+#' Add asterixes to p-values
+pretty_p = function (pvals){
+    purrr::map_chr(pvals, function(p){
+        p = round(p, 4)
+        if(p < .001) { return (paste("<.001", "***"))}
+        if(p < .01)  { return (paste(substr(p, 2, 5), "**"))}
+        if(p < .05)  { return (paste(substr(p, 2, 5), "*"))}
+        if(p < .1)   { return (paste(substr(p, 2, 5), "."))}
+        else{return (as.character(p))}
+    })
+}
+
+pvals = c(.1, .061, .04, .00001)
+pretty_p(pvals)
+```
+
+ 
+ 
+```{r}
+#' Replace p-values with the appropriate asterixes.
+#' This is not good practice
+pretty_stars = function(p){
+  purrr::map_chr(pvals, function(p){
+    p = round(p, 3)
+    if(p < .001) { return ("***")}
+    if(p < .01)  { return ("**")}
+    if(p < .05)  { return ("*")}
+    if(p < .1)   { return (".")}
+    else{return ('')}
+  })
+}
+pretty_stars(pvals)
+```
+
+ 
+```{r}
+#' Given coefficients (e.g. correlation coefficients) and p-values,
+#' put the appropriate asterixes next to the coefficients
+pretty_coef = function (coefs, pvals, digits=3) {
+  coefs = round(coefs, digits)
+  purrr::map2_chr(coefs, pvals, function(b, p){
+    if     (p < .001) return(paste(b, '***'))
+    else if (p < .01) return(paste(b, '**'))
+    else if (p < .05) return(paste(b, '*') )
+    else if (p < .1)  return(paste(b, '.') )
+    else return(as.character(round(b, 3)))
+  })
+}
+
+tvals = c(0.1, 1.9, 2, 4)
+adj_pvals = 2*pnorm(-abs(tvals)) * 2 # Bonferroni adjustment
+pretty_coef(tvals, adj_pvals)
+```
+
+ 
+
+```{r}
+#' Calculate (approximate) p-values for t-values, and add stars.
+pretty_t = function(tvals){
+  pvals = 2*pnorm(-abs(tvals))
+  pretty_coef(tvals, pvals)
+}
+
+pretty_t(tvals)
+```
+
+
