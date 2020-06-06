@@ -5,6 +5,7 @@ date: 2020-05-12
 source: jupyter
 ---
 
+## Or, if you want to understand and predict something, make a toy model of it
 
 > Click the button below to run an interactive version of this post in Google Colab.
 > There are some nice interactive widgets here that run on Colab, but have been replaced by GIFs 

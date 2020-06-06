@@ -1,0 +1,25 @@
+digraph g{
+    rankdir=LR;
+    exposed [label="Exposed\nN=1000"];
+    infected [label="Infected\nN=500"];
+    not_infected [label="Not Infected\nN=500"];
+    will [label="Will show symptoms\nN=250"];
+    wont [label="Won't show symptoms\nN=250"] ;
+    have [label="Already shows symptoms\nN=125"];
+    havent [label="Don't yet show symptoms\nN=125",
+            style="filled", fillcolor="red"];
+    dont   [label="Don't show symptoms\nN=250",
+            style="filled", fillcolor="red"];
+    wont2  [label="Won't show symptoms\nN=500"];
+    dont2  [label="Don't show symptoms\nN=500",
+            style="filled", fillcolor="#00AA00"];
+    exposed -> infected [label="50%"];
+    exposed -> not_infected [label="50%"];
+    infected -> will [label="50%"] ;
+    infected -> wont [label="50%"];
+    wont -> dont;
+    will -> have [label="50%"];
+    will -> havent [label="50%"];
+    not_infected -> wont2;
+    wont2 -> dont2;
+}

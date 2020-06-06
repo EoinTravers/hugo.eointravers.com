@@ -1,0 +1,137 @@
+---
+title: "Huge Power Curve"
+author: "Eoin Travers"
+date: "12 March 2020"
+output: html_document
+---
+
+```{r}
+
+library(tidyverse)
+library(furrr)
+library(simr)
+library(memoise)
+library(lmerTest)
+
+theme_set(cowplot::theme_cowplot(font_size=18))
+lgnd = function(x, y){
+  theme(legend.position = c(x, y),
+        legend.justification = c(x, y))
+}
+
+simulation.power.calculation = function(n.subs.per.cond, n.trials.per.cond,
+                                 sd.subs, sd.trials, group.difference, 
+                                 n.sims=100){
+  print(c(n.subs.per.cond, n.trials.per.cond,
+          sd.subs, sd.trials, group.difference))
+  generic.sim.df = expand.grid(
+    trial.nr  = 1:n.trials.per.cond,
+    subject.in.condition = 1:n.subs.per.cond,
+    condition = factor(c(0, 1))) %>%
+    mutate(subject = interaction(condition, subject.in.condition))
+  sim.model = makeLmer(x ~ condition + (1|subject), fixef=c(0, group.difference),
+                       VarCorr=sd.subs^2, sigma=sd.trials, data=generic.sim.df)
+  sims = powerSim(sim.model, nsim=n.sims, test=fixed('condition1', method='t'), progress=F)
+  power = mean(sims$pval < .05)
+  print(power)
+  return(power)
+}
+
+lazy.simulation.power.calculation = memoise(simulation.power.calculation,
+                                            cache = cache_filesystem('sims.cache'))
+```
+
+```{r}
+df = expand.grid(n.subs.per.cond = c(5, 10, 20),
+                 n.trials.per.cond = c(5, 10, 20),
+                 sd.subs = c(1),
+                 sd.trials = c(1, 2, 3),
+                 group.difference = seq(1))
+# df = expand.grid(n.subs = c(10, 20),
+#                  n.trials = c(10, 20),
+#                  sd.subs = c(2, 4),
+#                  sd.trials = c(2, 4),
+#                  group.difference = c(1, 2))
+# plan(multisession)
+df$power = pmap_dbl(df, lazy.simulation.power.calculation)
+# out = lazy.simulation.power.calculation(5,5,1,2,1)
+```
+
+
+
+
+```{r}
+ggplot(df, aes(n.subs.per.cond, power)) +
+  geom_point()
+```
+
+```{r}
+# ggplot(df, aes(group.difference, power,  color=factor(sd.trials))) +
+#   geom_path() +
+#   facet_grid(sd.subs~group.difference) +
+#   geom_point()
+```
+
+
+```{r}
+df = mutate(df, 
+            Subjects = str_c(df$n.subs.per.cond, ' Subjects') %>% factor(),
+            Subjects = fct_reorder(Subjects, n.subs.per.cond)
+)
+nice.decimals = function(x){
+  map_chr(x, function(y) {
+    result = gsub('^[0]+|\\.[0]+$', '', y)
+    if(is.na(result)) return(NA)
+    if(result=='')  return('0')
+    return(result)
+  })
+}
+ggplot(df, aes(sd.trials, power,  color=factor(n.trials.per.cond))) +
+  facet_wrap( ~ Subjects) +
+  geom_path() +
+  labs(x='SD of Measurements', y='Power', 
+       color='Trials per Subject') +
+  lgnd(.05, .95) +
+  scale_x_continuous(breaks=c(0, unique(df$sd.trials)), 
+                     labels = nice.decimals) +
+  scale_y_continuous(limits=c(0, 1), labels=nice.decimals)
+```
+
+```{r}
+ggplot(df, aes(n.subs.per.cond, power, 
+               color=factor(n.trials.per.cond))) +
+  facet_wrap( ~ sd.trials) +
+  geom_path() +
+  labs(x='Subjects per Condition', y='Power', 
+       color='Trials per\nSubject') +
+  lgnd(.05, .95)
+```
+
+```{r}
+ggplot(df, aes(n.subs.per.cond, power, 
+               color=factor(n.trials.per.cond),
+               linetype=factor(sd.subs))) +
+  facet_wrap( ~ sd.trials) +
+  geom_path()
+```
+
+```{r}
+ggplot(df, aes(sd.subs, power, 
+               color=factor(sd.trials))) +
+  facet_grid(n.subs ~ n.trials) +
+  geom_path()
+```
+
+
+---
+
+```{r}
+library(memoise)
+f = function(x){
+  print(paste('Running function with x =', x))
+  x*2
+}
+mf = memoise(f, cache=cache_filesystem('tmp.cache'))
+mf(1)
+```
+

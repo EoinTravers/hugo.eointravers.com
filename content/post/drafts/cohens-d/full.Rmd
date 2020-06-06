@@ -1,0 +1,522 @@
+---
+title: "Cohen's D is Weird"
+author: "admin"
+date: '2020-03-10'
+output: md_document
+summary: "Standardised effect sizes don't work as you might assume they do"
+source: jupyter
+---
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+theme_set(cowplot::theme_cowplot(font_size=18))
+lgnd = function(x, y){
+  theme(legend.position = c(x, y),
+        legend.justification = c(x, y))
+}
+```
+
+Standardised effect sizes sound great.
+They're supposed to give you an easy, standardised way to quantify 
+whether an effect - a difference between groups, 
+a correlation coefficients, or a regression weight, for example -
+is small, medium, or large. 
+You can then plug these numbers into a simple power calculation 
+to figure out how many participants you need to test,
+and make reviewers happy when you try to publish the work.
+
+Standardised effect sizes are calculated by comparing a raw effect size
+to a measure of the variability between participants.
+I'll take *Cohen's D* as an example.
+This is a standard measure of the difference between two groups,
+and is simply the difference between the means of the two groups
+divided by the *pooled standard deviation* of the groups
+(a weighted average of the standard deviation of each group).
+
+$$
+d = \frac{\mu_1 - \mu2}{\sigma_{Pooled}};
+$$
+
+It doesn't matter for this post, but 
+
+$$
+\sigma_{Pooled} = \sqrt{\frac{(n_1 - 1)\sigma^2_1 + (n_2 - 1)\sigma^2_1}{ n_1 + n_2 - 2}}
+$$
+where $n$ is the sample size in each group. Instead, let's assume that both groups have the same standard deviation, so
+
+$$
+\sigma_{Pooled} = \sigma_1 = \sigma_2
+$$
+
+Here's an illustration, with $\sigma$ fixed at 1 
+and the difference in means varying between plots.
+
+
+
+```{r fig.width=12, fig.height=2.75}
+d.values = c(.1, .5, 1, 2, 5)
+x.values = seq(-4, 10, .1)
+dfs = map_df(d.values, function(d){
+  density1 = dnorm(x.values, 0, 1)
+  density2 = dnorm(x.values, d, 1)
+  data.frame(
+    x=x.values,
+    Group.1 = density1,
+    Group.2= density2,
+    d = d
+  )
+}) %>%
+  mutate(D = str_glue('d = {d}'))
+
+result = dfs %>% gather(Group, density, Group.1, Group.2)
+means = result %>% group_by(D, Group) %>% summarise(d = mean(d)) %>%
+  mutate(d = ifelse(Group=='Group.1', 0, d))
+
+ggplot(result, aes(x, density, color=Group, fill=Group)) +
+  geom_path() + geom_ribbon(mapping=aes(ymax=density, ymin=0), alpha=.2) +
+  geom_vline(data = means, mapping=aes(xintercept=d, color=Group)) +
+  facet_wrap(~D, scales='free', ncol=5) +
+  labs(x='', y='') +
+  theme(legend.position = 'none')
+```
+
+So far, so good.
+
+Here's the problem:
+when we use this kind of statistic,
+we assume that $\sigma$ reflects the scale of the individual differences in our data.
+This true only if we've measured whatever it is we're trying to measure with no measurement error.
+(Let's assume we're psychologists, and we're comparing two groups of participants.)
+This assumption is valid if we're studying something that can be measured very accurately,
+like heights or ages.
+
+Usually, what we're actually measuring is noisy like response times,
+and we try alleviate this noise by averaging over a large number of trials.
+As a result we end up with an estimate for each participant (the mean)
+and a measure of how uncertain we are about that estimate (the standard error).
+
+All of this means that $\sigma$, the standard deviation of our groups,
+actually captures two sources of variance:
+actual individual differences between participants, and measurement error.
+This has all sorts of knock on effects, which I'll demonstrate later in this post.
+The weirdest is that **running more trials per participant increases your effect size**.
+This makes sense mathematically, but means that Cohen's D is actually
+
+$$
+d = \frac{\mu_1 - \mu2}{
+  \sqrt{\sigma^2_{\text{Subjects}} + \sigma^2_{\text{Measurement error}}}
+};
+$$
+
+At this point, you can stop reading.
+I think I've made my point: because estimates of variance across participants like $\sigma$ 
+are inflated by measurement error, standardised effect sizes based on these estimates
+are pretty hard to interpret.
+
+If you do keep reading, you'll see
+a) maths,
+b) simulations, and
+c) some thoughts on how multilevel models make this problem go away.
+
+## Notes on Variance
+
+See [this post]() for a whole lot more details about variance.
+
+- Variance ($\sigma^2$) is standard deviation ($\sigma$) squared.
+- Standard deviation is the square root of variance ($\sigma = \sqrt{\sigma^2}$)
+- Variance is additive, so if you add together the effects of two independant sources of variance
+  the total variance is the sum of two individual original sources of variance,
+  $\sigma^2_{\text{Total}} = \sigma^2_{\text{A}} + \sigma^2_{\text{B}}$.
+- This means the total standard deviation is 
+  the square root of the sum of squared original standard deviations,
+  $\sigma_{\text{Total}} = \sqrt{\sigma^2_{\text{A}} + \sigma^2_{\text{B}}}$.
+  
+Now back to effect sizes.
+
+## Sources of Variance
+
+As I said above, the group standard deviation, $\sigma_{Total}$,
+captures both the actual individual differences between participants, 
+and measurement error affecting each participants' score.
+
+$$
+\sigma_{\text{Total}} = \sqrt{\sigma^2_{\text{Subjects}} + \sigma^2_{\text{Error}}}
+$$
+
+Can we quanitfy these two sources of variance?
+If you only have one measurement per participant, the answer is no:
+you could have big individual difference and no measurement error,
+or no difference between participants and major measurement error. 
+However, if you've collected multiple trials per participant you can learn from 
+the standard deviation across trials, $\sigma_{\text{Trials}}$.
+From this, we can estimate the standard error,
+$SE = \frac{\sigma_{\text{Trials}}}{\sqrt{n}}$;
+the standard deviation across trials, divided by the the square root of the number of trials.
+
+## Simulations
+
+To illustrate this idea, let's simulate some data.
+Say we assigned $n$ subjects to a *baseline condition* 
+and $n$ to an *experimental condition*.
+Subjects' true scores in the baseline condition
+are drawn from the Normal distribution, 
+$\theta_s \sim Normal(\mu_{\text{Baseline}}, \sigma_s)$,
+while true scores in the experimental condition are drawn from
+$\theta_s \sim Normal(\mu_{\text{Experimental}}, \sigma_s)$.
+We can't record each subject's score directly,
+so instead we make $m$ noisy measurements per subject,
+$x \sim Normal(\theta_s, \sigma_x)$.
+This is a classic between-subjects design.
+
+For these simulations we set 
+$n = 20$,
+$\mu_{\text{Baseline}} = 0$,
+$\mu_{\text{Experimental}} = 5$,
+$\sigma_s$ (standard deviation across subjects) $ = 2$,
+and $\sigma_s$ (standard deviation across trials) $ = 5$.
+
+
+```{r}
+simulate.data = function(n.subs.per.cond = 20,
+                         n.trials.per.cond = 10,
+                         sd.subs = 2,
+                         sd.trials = 2,
+                         mu.1 = 0,
+                         mu.2 = 5) {
+  n.subs = 2 * n.subs.per.cond
+  condition.label.vec = rep(c('Baseline', 'Experimental'), each=n.subs.per.cond)
+  condition.mean.vec = rep(c(mu.1, mu.2), each=n.subs.per.cond)
+  subject.mean.vec = rnorm(n.subs, condition.mean.vec, sd.subs)
+
+  subj.data = data.frame(
+    condition = condition.label.vec, 
+    condition.mean = condition.mean.vec,
+    subject.mean = subject.mean.vec,
+    subject = 1:n.subs
+  )
+  data = subj.data %>%
+    mutate(x = map(subject.mean, function(m) rnorm(n.trials.per.cond, m, sd.trials))) %>%
+    unnest(x)
+  return(data)
+}
+
+true.sd.x = 5
+true.sd.s = 1
+true.m = 10
+mu.experimental = 5
+data = simulate.data(n.trials.per.cond = true.m, 
+                     sd.trials = true.sd.x,
+                     sd.subs = true.sd.s,
+                     mu.2 = mu.experimental)
+```
+
+Here's a plot of the individual measurements for each subject.
+
+```{r}
+g = ggplot(data, aes(subject, x, color=condition)) +
+  geom_point(alpha=.5) +
+  lgnd(.1, 1) +
+  coord_flip() +
+  labs(x='Subject', y='Score', color='Condition')
+g
+```
+
+
+Here's the same data with each subjects' true score $\theta$ (x symbols)
+and the overall mean score per condition $\mu$ (vertical lines) overlaid.
+
+```{r}
+g2 = g + geom_point(mapping=aes(y=subject.mean), shape='x', size=5) +
+  geom_point(mapping=aes(y=condition.mean), shape='|', size=5)
+g2
+```
+
+And here it is with each subjects' true score (x)
+and the mean and standard error of their measurements overlaid.
+The point here is that
+the estimated means don't match up with the true scores,
+because of random measurement noise.
+
+```{r}
+ggplot(data, aes(subject, x, color=condition)) +
+  stat_summary(fun.data=mean_se, alpha=.7) +
+  geom_point(mapping=aes(y=subject.mean), shape='x', size=5) +
+  lgnd(.1, 1) +
+  coord_flip() +
+  labs(x='Subject', y='Score')
+```
+
+How far off are these means from the true scores?
+
+```{r}
+get.subject.means = function(data){
+data %>%
+  group_by(condition, subject) %>%
+  summarise(mean.score = mean(x),
+            true.score  = mean(subject.mean),
+            sem = sd(x) / sqrt(n())) %>%
+  mutate(error = mean.score - true.score)  
+}
+subject.means = get.subject.means(data)
+```
+
+The average error is close to 0, indicating that the means scores aren't biased.
+
+```{r}
+mean(subject.means$error)
+```
+
+More importantly, the standard deviation of the errors
+is close to average standard error of measurement for each participant,
+which is naturally also close to the theoretical standard error,
+$\frac{\sigma_x}{\sqrt{m}}$
+
+```{r}
+sd(subject.means$error)
+mean(subject.means$sem)
+theoretical.sem = true.sd.x / sqrt(true.m)
+theoretical.sem
+```
+
+
+Now, we know the true effect size here: 
+$\frac{\mu_{\text{Experimental}} - \mu_{\text{Baseline}}}{\sigma_s}$.
+
+```{r}
+mu.experimental / true.sd.s
+```
+
+When we actually calculate Cohen's D for this data,
+however, we'll usually find a value that's lower than this.
+
+```{r}
+calculate.cohens.d = function(subject.means){
+  cond.means = subject.means %>% 
+    group_by(condition) %>% 
+    summarise(mean = mean(mean.score), sd=sd(mean.score))
+  d.raw = diff(cond.means$mean)
+  pooled.sd = mean(cond.means$sd)
+  d.raw / pooled.sd
+}
+calculate.cohens.d(subject.means)
+```
+
+
+
+We can confirm this by running simulations across values of $m$ and $\sigma_x$.
+
+```{r}
+wrap.sim = function(sd.trials, n.trials){
+  df = simulate.data(sd.trials=sd.trials, 
+                     n.trials.per.cond = n.trials,
+                     mu.2 = mu.experimental, sd.subs = true.sd.s)
+  subject.means = df %>%
+    group_by(condition, subject) %>%
+    summarise(mean.score = mean(x),
+              true.score  = mean(subject.mean),
+              sem = sd(x) / sqrt(n())) %>%
+    mutate(error = mean.score - true.score)
+  results = data.frame(
+    sd.error = sd(subject.means$error),
+    obs.sem = mean(subject.means$sem),
+    theoretical.sem = sd.trials / sqrt(n.trials),
+    estimated.d = calculate.cohens.d(subject.means)
+  )
+  results
+}
+grid.data = expand.grid(sd.trials=c(0, 1, 2, 3, 4), 
+                        n.trials=c(5, 10, 50, 200), 
+                        ix=1:5)
+grid.data$results = with(grid.data, map2(sd.trials, n.trials, wrap.sim))
+results = unnest(grid.data, results)
+```
+
+We find that both the average Standard Error of Measurement (red)
+and the SD of the measurement error for each participant (blue)
+track the theoretical Standard Error.
+
+```{r}
+plot.results = results %>%
+  pivot_longer(cols = c(obs.sem, sd.error)) %>%
+  mutate(name = ifelse(name=='obs.sem', 'Average SEM', 'SD of Errors'))
+ggplot(plot.results, aes(theoretical.sem, value, color=name)) +
+  geom_abline() +
+  geom_point() +
+  coord_fixed(xlim=c(0, 2), ylim=c(0, 2)) +
+  lgnd(.1, 1) +
+  labs(color='', x='Theoretical SEM', y='')
+```
+
+More importantly, we find that as the theoretical SEM increases,
+due to either a smaller number of trials per participants
+or more greater noise ($\sigma_x$)
+the estimated effect size becomes smaller than the true value of $5$.
+
+```{r}
+ggplot(results, aes(theoretical.sem, estimated.d)) +
+  geom_point() +
+  stat_smooth(method='loess') +
+  labs(x='Theoretical SEM', y='Estimated Effect Size') +
+  geom_hline(yintercept=mu.experimental / true.sd.s, linetype='dashed') +
+  geom_hline(yintercept=0, linetype='solid')
+```
+
+
+# Linear Mixed Models to the Rescue
+
+Fortunately, all of these issues are solved by linear mixed models (LMMs).
+Using LMMs, we can fit a model to our data the properly captures 
+the various sources of information.
+
+The LMM for this data set is as follows
+
+$$
+\begin{align}
+x_i           &\sim Normal(\theta_{s(i)}, \sigma_x); \\
+\theta_{s(i)} &\sim Normal(\mu_{c(i)}, \sigma_s); \\
+x(i)          &= \text{Measurement } i;\\
+s(i)          &= \text{Subject for measurement } i;\\
+c(i)          &= \text{Condition for measurement } i \text{ (Experimental or Control)}
+\end{align}
+$$
+
+The main parameters to estimate are therefore
+$\sigma_x$ (standard deviation of noise on each measurement),
+$\sigma_s$ (standard deviation of differences between participants),
+$\mu_{\text{Control}}$ (underlying mean score in the control condition), and
+$\mu_{\text{Experimental}}$ (underlying mean score in the experimental condition).
+
+```{r}
+library(lme4)
+lmm = lmer(x ~ -1 + condition + (1|subject), data=data)
+summary(lmm)
+```
+
+As we can see, the model does a good job of estimating each parameter.
+
+```{r}
+estimates = broom::tidy(lmm)
+estimates$true.values = c(0, mu.experimental, true.sd.s, true.sd.x)
+estimates
+```
+
+## Problems for Power Calculations
+
+All of this has pretty serious implications for power calculations.
+First, a recap of how classical power calculations work for this design.
+In our simulated data, the difference between the true condition means is 5 points,
+and the standard deviation within each group is 1 point, so the effect size of Cohen's $d = \frac{5}{1} = 5$.
+The power of our test reflects the probability of finding a significant ($p < .05$)
+difference between the two condition if we were to sample $n$ participants per condition.
+
+$$
+\begin{align}
+  \text{Power} &= P( p < .05 \ \big|\  d, n) \\
+               &= P_t(|t| > t^{\text{Critical}}_{\nu} \ \big|\  \nu, \hat \mu); \\
+  \nu          &= 2(n - 1); \\
+  \hat \mu     &= d\sqrt{\frac{n}{2}};\\
+\end{align}
+$$
+
+where $t^{\text{Critical}}_{\nu}$ is the t-value required 
+for a t test with degrees of freedom $\nu$ to obtain $p < .05$,
+$\hat \mu$ is the non-centrality parameter of the t distribution,
+and so $P_t(|t| > t^{\text{Critical}}_{\nu} \ \big|\  \nu, \hat \mu)$
+is the probability of obtaining a t-value, in either direction,
+greater than the value needed for $p < .05$,
+from a Student's t distribution with degrees of freedom $\nu$ 
+that has been shifted by $d\sqrt{\frac{n}{2}}$.
+
+Didn't understand any of the maths here? 
+Don't worry, you don't have to, and I've just learning some of it while writing this.
+For decades, everyone, including myself, has just plugged values of $d$ and $n$
+into [G-Power](http://www.psychologie.hhu.de/arbeitsgruppen/allgemeine-psychologie-und-arbeitspsychologie/gpower.html)
+or into the `pwr` package for R to calculate power,
+or, more commonly, plugged in values of $d$ and a desired power (say $0.8$)
+to find out how many participants we need.
+The most important point is that power for a given test
+is a function of effect size $d$ and sample size $n$,
+and the function looks like this:
+
+```{r}
+power.calculation = function(d, n, alpha=.05){
+  # Adapted from pwr::pwr.t.test
+  nu    = (n - 1) * 2
+  t.critical    = qt(alpha/2, nu, lower = FALSE)
+  power = pt(t.critical, nu, ncp = sqrt(n/2) * d, lower = FALSE) + 
+    pt(-t.critical, nu, ncp = sqrt(n/2) * d, lower = TRUE)
+  power
+}
+
+df = expand.grid(d = seq(0, 2, .05),
+                 n = c(5, 10, 50, 200))
+df$power = pmap_dbl(df, power.calculation)
+
+ggplot(df, aes(d, power, color=factor(n))) +
+  geom_path() +
+  coord_cartesian(ylim=c(0, 1)) +
+  geom_hline(yintercept=c(0, .05, 1), 
+             linetype=c('dashed', 'dotted', 'dashed')) +
+  # lgnd(.05, .9) +
+  labs(x='Effect size (d)', y='Power', color='Sample size') +
+  scale_y_continuous(labels = scales::percent)
+```
+
+Notice that power doesn't go below 5%,
+since you have a 5% chance of finding a significant result even if
+there is really no effect ($d = 0$).
+
+Let's simulate data with a weaker effect than before for this demonstration.
+
+```{r}
+mu.experimental.weak = 1.
+data.weak = simulate.data(n.trials.per.cond = true.m, 
+                          sd.trials = true.sd.x,
+                          sd.subs = true.sd.s,
+                          mu.2 = mu.experimental.weak)
+subject.means.weak = get.subject.means(data.weak)
+
+ggplot(data.weak, aes(subject, x, color=condition)) +
+  geom_point(alpha=.5) +
+  lgnd(.01, 1) +
+  coord_flip() +
+  labs(x='Subject', y='Score', color='Condition', 
+       title='Weak Effect (x shows true scores per subject)') + 
+  geom_point(mapping=aes(y=subject.mean), shape='x', size=5) +
+  geom_point(mapping=aes(y=condition.mean), shape='|', size=5)
+```
+
+
+```{r}
+ggplot(subject.means.weak,  aes(mean.score, fill=condition)) +
+  geom_histogram(position = 'identity', alpha=.5) +
+  facet_wrap(~condition, ncol = 1) +
+  theme(legend.position='none')
+```
+
+
+```{r}
+calculate.cohens.d(subject.means.weak)
+```
+
+As before, even though the true effect size is $1$
+(that is, $\frac{\text{Difference between conditions}}{\text{SD within conditions}} = 1$  ),
+sampling error has left us with an estimated effect size
+that is much smaller, at `r round(calculate.cohens.d(subject.means.weak), 2)`.
+
+```{r}
+t.test(mean.score ~ condition, data=subject.means.weak)
+```
+
+
+
+
+
+
+```{r}
+# library(brms)
+# bmm = brm(x ~ condition + (1|subject), data=data)
+# summary(bmm)
+```
+
+

@@ -1,0 +1,16 @@
+digraph g{
+    rankdir=LR;
+    exposed [label="Contact"];
+    infected [label="Infected\nP=α"];
+    not_infected [label="Not Infected\nP=(1-α)"];
+    sick [label="Outcome A\nSymptoms\nP=α × p(τ>d)"];
+    incubating [label="Outcome B\nNo symptoms yet\nP=α × (1-p(τ>d))",
+                style="filled", fillcolor="red"];
+    healthy  [label="Outcome C\nNo symptoms\nP=1-α"
+              style="filled", fillcolor="#00AA00"];
+    exposed -> infected [label="α"];
+    exposed -> not_infected [label="1-α"];
+    infected -> sick [label="p(τ>d)"];
+    infected -> incubating [label="1-p(τ>d)"];
+    not_infected -> healthy;
+}
