@@ -1,9 +1,16 @@
 ---
 title: "Freelance Work: I can put your research online"
-summary: "You're not going to be testing in the lab any time soon"
+summary: "Update: Now I can't."
 date: "2020-05-13"
 ---
 
+
+> **UPDATE:**
+> Since writing this post,
+> I've started a new position working with Jon Roiser and Oli Robinson's
+> [Neuroscience and Mental Health](https://www.ucl.ac.uk/icn/research/research-groups/neuroscience-and-mental-health)
+> group at UCL,
+> where I'll be working on building online computational psychiatry tasks.
 
 Three things:
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Page Title</title>
+    <link href="style.css" rel="stylesheet"/>
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <div id="contents">
+      <h1>Main Heading</h1>
+      <p>
+        Paragraph contents.
+        Includes <a href="page2.html">a link to another page</a>.
+      </p>
+      <img alt="Image description" src="picture.jpg"/>
+    </div>
+    <script>
+      let current_date = Date(Date.now());
+      let new_para = document.createElement('p');
+      new_para.innerHTML = 'Page loaded at ' + current_date;
+      document.getElementById('contents').append(new_para)
+    </script>
+  </body>
+</html>
