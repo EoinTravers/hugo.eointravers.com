@@ -1,5 +1,5 @@
 ---
-title: "Freelance Work: I can put your research online"
+title: "Freelance Work: I can put your research online [Update: Not any more]"
 summary: "Update: Now I can't."
 date: "2020-05-13"
 ---
@@ -11,6 +11,9 @@ date: "2020-05-13"
 > [Neuroscience and Mental Health](https://www.ucl.ac.uk/icn/research/research-groups/neuroscience-and-mental-health)
 > group at UCL,
 > where I'll be working on building online computational psychiatry tasks.
+
+> If you're interested in building online experiments,
+> you might enjoy my guide to [doing it yourself](../web-1/)
 
 Three things:
 

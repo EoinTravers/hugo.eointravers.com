@@ -1,16 +1,16 @@
 ---
-title: "Online Experiments - #1: How the Web Works"
-date: 2020-05-29
+title: "Online Experiments #1: How the Web Works"
+date: 2020-07-13
 category:
 tags:
 slug: web-1
 author: admin
 summary: "It's always been useful to be able to run experiments online. Post COVID-19, it's essential."
-draft: True
+draft: False
 ---
 
-> **This is a draft post.**
-> **Beware the errors.**
+<!-- > **This is a draft post.** -->
+<!-- > **Beware the errors.** -->
 
 It's always been useful to be able to run experiments online.
 Post COVID-19, it's essential.
@@ -20,11 +20,10 @@ The posts will be (roughly) as follows:
 
 1. **How the Web Works** [this post]
 2. [Choosing the Right Tools for the Job](../web-2/)
-3. Doing Things the Hard Way [coming later]
-4. Setting the Scene: HTML and CSS [coming later]
-5. Making it Move: JavaScript and jQuery [coming later]
-6. Saving Data [coming later]
-7. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
+3. Setting the Scene: HTML and CSS [coming later]
+4. Making it Move: JavaScript and jQuery [coming later]
+5. Saving Data [coming later]
+6. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
 
 # Part 1: How the Web Works
 
@@ -67,7 +66,7 @@ this information is sent to the server, where it might be saved to a *database*.
 
 When running experiments online,
 you'll mostly need to worry about the front end.
-A couple of coding languages are needed
+A couple of coding languages are needed for
 the front end of a website look and act the way it does.
 The process, performed by the browser,
 of parsing and running this code to create what you see on screen
