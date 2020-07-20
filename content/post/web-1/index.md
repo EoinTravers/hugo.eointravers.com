@@ -6,16 +6,12 @@ tags:
 slug: web-1
 author: admin
 summary: "It's always been useful to be able to run experiments online. Post COVID-19, it's essential."
-draft: False
 ---
-
-<!-- > **This is a draft post.** -->
-<!-- > **Beware the errors.** -->
 
 It's always been useful to be able to run experiments online.
 Post COVID-19, it's essential.
 In this series of posts, I cover what you need to know
-in order to move your research online.
+to move your research online.
 The posts will be (roughly) as follows:
 
 1. **How the Web Works** [this post]
@@ -27,7 +23,7 @@ The posts will be (roughly) as follows:
 
 # Part 1: How the Web Works
 
-In order to run experiments online, you'll need to know a little about how the web works.
+To run experiments online, you'll need to know a little about how the web works.
 This will be a very bare-bones introduction to a complex topic.
 To learn more, check the links at the bottom of the page.
 
@@ -39,7 +35,7 @@ To learn more, check the links at the bottom of the page.
 The web has two ends.
 The **back end** is what happens on the *server*,
 a dedicated computer which *serves* websites to anyone who asks to see them,
-stores data, and somethings does some number crunching.
+stores data, and sometimes does some number crunching.
 The **front end** is what happens in the *browser*,
 an application running on the user's computer which
 displays the contents sent by the server.
@@ -153,6 +149,7 @@ that make our life easier.
 I'll be focusing on [`jQuery`](https://jquery.com/),
 the most popular library by some margin.
 More on this later.
+
 
 Finally, we can include all kinds of **multimedia** files on a web page,
 including images, audio, and video.

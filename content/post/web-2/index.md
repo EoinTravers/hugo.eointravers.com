@@ -8,14 +8,10 @@ summary: "Simplicity vs Flexibility"
 draft: False
 ---
 
-<!-- > **This is a draft post.** -->
-<!-- > **Beware the errors.** -->
-
-
 It's always been useful to be able to run experiments online.
 Post COVID-19, it's essential.
 In this series of posts, I cover what you need to know
-in order to move your research online.
+to move your research online.
 The posts will be (roughly) as follows:
 
 1. [How the Web Works](../web-1/)
@@ -33,8 +29,8 @@ This review should make it easier for you, the researcher,
 do choose the tool that's right for you.
 
 I spoke about a lot of the contents of this post
-at the [BeOnline 2020]() conference.
-You can find my slides [here]().
+at the [BeOnline 2020](https://beonline.research.sc/2020) conference.
+You can find my slides [here](https://docs.google.com/presentation/d/16TjOxASYlgw7rd5znQHXWiuGStOXhn67mZg2npKlRj8/edit?usp=sharing).
 
 ## Simplicity vs Flexibility
 
@@ -53,7 +49,7 @@ it's probably the ideal tool for the job.
 However, it isn't really designed for other kinds of data analysis.
 You *can* use Excel for scientific data analysis,
 but the design of the program doesn't make this easy.
-For instance, in some cases Excel may decide to interpret some coluumns as dates,
+For instance, in some cases Excel may decide to interpret some columns as dates,
 something that would have been helpful if you were managing your finances,
 but has [disastrous consequences](https://www.sciencemag.org/news/2016/08/one-five-genetics-papers-contains-errors-thanks-microsoft-excel)
 if you were actually working with gene data.
@@ -180,14 +176,14 @@ Both of these options are discussed below.
 I don't have much experience using PsychoPy for online studies myself,
 but I have a lot of faith in the PsychoPy team,
 and their python library is (was) my go-to tool for lab studies,
-so I have no problem recomending them!
+so I have no problem recommending them!
 
 [Gorilla](https://gorilla.sc/) (££) provide a similar service.
-Gorilla provides a [Task Builder]() GUI for building standard experiments,
-a [Questionairre Builder]() for forms and questionaiires,
-and an [Experiment Builder]() for putting forms, tasks, and logic
+Gorilla provides a Task Builder GUI for building standard experiments,
+a Questionnaire Builder for forms and questionnaires,
+and an Experiment Builder for putting forms, tasks, and logic
 (randomisation, counterbalancing, etc.) together.
-They provide a [Code Editor]() that lets you include
+They provide a Code Editor that lets you include
 paradigms built using other tools as part of your experiment.
 Experiments built using Gorilla can only be hosted on their server (££),
 and unless your department has a site license you'll have to pay per participant.
@@ -199,7 +195,7 @@ and unless your department has a site license you'll have to pay per participant
 > and I spoke recently at a
 > [conference on online experiments](https://beonline.research.sc/2020)
 > they were involved in organising.
-> All of this means that I have no problem with reccomending Gorilla,
+> All of this means that I have no problem with recommending Gorilla,
 > but also that I'm likely a little biased, and this should be acknowledged.
 
 [Lab.js](https://lab.js.org/) is another GUI tool for building online experiments.
@@ -251,14 +247,14 @@ Stay tuned!
 It's not as interesting, but you still need to serve your experiment, and save the data.
 Several of the front end tools described above,
 particularly the paid-for ones,
-come with a backend already set up and ready to go.
+come with a back end already set up and ready to go.
 Google Forms, Qualtrics, and the like all take care of hosting for you,
 so you can just build your experiment or survey, click launch,
 and then download the data when it's done.
 
 ## Specialist services
 
-There are a few services that wil serve your experiment
+There are a few services that will serve your experiment
 and save the data for you.
 In some cases, this just means uploading JavaScript, HTML, and CSS
 files you've written yourself (from scratch or using jsPsych),
@@ -273,14 +269,14 @@ however they're generated,
 but the Pavlovia is mainly geared towards running experiments
 built and exported using PsycoPy (discussed above).
 
-[Gorilla](XXXX) (££) provide something similar.
+[Gorilla](https://gorilla.sc/) (££) provide something similar.
 Experiments built using the Gorilla Builder tools (see above)
 can only be hosted on the Gorilla server.
-Gorilla also provide a [Code Editor]() tool,
+Gorilla also provide a [Code Editor](https://gorilla.sc/info/code-editor) tool,
 which allows you to code your own experiments.
 These can be coded using the Gorilla JavaScript framework
 (which I haven't tried),
-using jsPsych (which is [well-documented]() on their website),
+using jsPsych (which is [well-documented](https://gorilla.sc/support/articles/jspsych) on their website),
 or coded from scratch.
 There are a few quirks to uploading your own JavaScript to Gorilla,
 which I'll cover in a later post.
@@ -291,13 +287,14 @@ An online experiment is just another kind of *web app*,
 and there are plenty of back end tools for web apps
 that can be used to serve experiments and save data.
 
-The most popular service is [Google Firebase]().
+The most popular service is [Google Firebase](https://firebase.google.com/).
 Firebase provides a huge range of services,
 including web hosting, databases, machine learning,
 analytics, and advertising,
 so it's definitely flexible, and not simple.
 I haven't really looked into using Firebase seriously,
 so I can't say any more at this point.
+However, [this blog post](https://tobywise.com/blog/firebase-for-online-testing) looks interesting.
 
 ## Your Own Server (The Hard Way)
 
@@ -313,7 +310,7 @@ You can then upload the files that make up your website
 do some configuration (which I'll cover in Part 6),
 send participants the link, and away you go.
 However, this control comes at a price.
-Web servers are commplicated, and you'll need to learn how the work
+Web servers are complicated, and you'll need to learn how the work
 in order to properly manage your experiment,
 and to avoid accidentally losing data,
 or worse, sharing personal data.
@@ -367,7 +364,7 @@ Running your own server allows you to run whatever software you like,
 and the only limit on the kind of complicated, interactive experiments
 you can run is whether or not you have the time and energy to code them.
 In my own research, any complicated interactive experiments
-hosted on a private server have been covered by separate ad-hoc ethical approvals.
+hosted on a private server have been covered by separate ad hoc ethical approvals.
 
 ## Your Own Server (The Easier Way)
 
