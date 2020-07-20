@@ -180,8 +180,7 @@ This is actually a combination of four compatible tools:
 
 *Linux* is the operating system used by the overwhelming majority of web servers.
 It's free, secure, and loved by programmers,
-and the versions that run on servers - usually [Debian](https://www.debian.org/)
-- almost never crashes.
+and the versions that run on servers --- usually [Debian](https://www.debian.org/) --- almost never crashes.
 To work with Linux effectively, you need some familiarity with the
 command line, or
 [*terminal*](https://maker.pro/linux/tutorial/basic-linux-commands-for-beginners).

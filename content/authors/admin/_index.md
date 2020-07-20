@@ -93,11 +93,10 @@ user_groups:
 
 
 
-I'm a Cognitive Scientist, based in Patrick Haggard's
-[Action and Body Lab](https://www.ucl.ac.uk/icn/research/research-groups/action-body)
+I'm a Cognitive (Neuro)Scientist
 at the UCL
 [Institute of Cognitive Neuroscience](http://www.ucl.ac.uk/icn).
 
 I'm currently looking for a position in data science/analysis in London.
-If you're looking for someone who knows data, statistics, mind, and brains,
-get in touch!
+I know lots of things about data, statistics, machine learning, Bayes, web development, Python, R, minds, and brains.
+If you're looking for someone who knows these things, get in touch!
