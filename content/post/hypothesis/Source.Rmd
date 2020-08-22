@@ -1,0 +1,492 @@
+---
+title: "Frequentist and Bayesian Hypothesis Testing"
+date: "2020-08-18"
+author: admin
+summary: ""
+draft: True
+output: 
+  html_document:
+    preserve_yaml: true
+    echo: no
+    keep_md: yes
+    message: no
+    self_contained: no
+    warning: no
+  md_document:
+    preserve_yaml: true
+---
+
+
+```{r echo=FALSE, results='hide', cache=FALSE}
+library(knitr)
+library(tidyverse)
+theme_set(theme_minimal(base_size = 14))
+
+opts_knit$set(root.dir=normalizePath('.'))
+opts_chunk$set(fig.path = "./figures/")
+```
+
+```{r two-tailed-p-value}
+x = seq(-3.5, 3.5, .01)
+df = data.frame(x, g='All')
+
+f <- function(x, kind){
+  y <- dnorm(x, 0, 1)
+  if(kind=='low')   y[(x >= -2)] <- NA
+  if(kind=='high')  y[(x <= 2)] <- NA
+  return(y)
+}
+
+ggplot(df, aes(x)) +
+  stat_function(fun=dnorm, geom='area', fill='grey', color='black') +
+  stat_function(fun=f, geom='area', fill='red', args=list(kind='low'), color='black') +
+  stat_function(fun=f, geom='area', fill='blue', args=list(kind='high'), color='black') +
+  labs(x='t statistic', y='Probability Density',
+       title='Two-tailed p-values') +
+  geom_vline(xintercept=0, linetype='dashed') +
+  geom_hline(yintercept=0, linetype='solid') +
+  geom_text(x=-2.5, y=.1, label='2.5%', color='red', size=10) +
+  geom_text(x=0, y=.1, label='95%', color='white', size=10) +
+  geom_text(x=2.5, y=.1, label='2.5%', color='blue', size=10)
+```
+
+
+
+```{r one-tailed-p-value}
+pos = filter(df, x >= 0)
+f = function(x, kind){
+  y <- dnorm(x, 0, 1)
+  if(kind=='low')   y[(x < 1.66) | (x >= 2.02)] <- NA
+  if(kind=='high')  y[(x <= 1.99)] <- NA
+  return(y)
+}
+
+ggplot(pos, aes(x)) +
+  stat_function(fun=dnorm, geom='area', fill='grey', color='black') +
+  stat_function(fun=f, geom='area', fill='red', args=list(kind='low'), color='black') +
+  stat_function(fun=f, geom='area', fill='blue', args=list(kind='high'), color='black') +
+  labs(x='Test statistic', y='Probability Density',
+       title='One-tailed p-values') +
+  geom_vline(xintercept=0, linetype='dashed') +
+  geom_hline(yintercept=0, linetype='solid') +
+  geom_text(x=.8, y=.15, label='95%', color='white', size=10) +
+  geom_text(x=1.9, y=.15, label='2.5%', color='red', size=10) +
+  geom_text(x=2.5, y=.075, label='2.5%', color='blue', size=10)
+```
+
+```{r confidence-intervals, fig.width=7, fig.height=3}
+df = data.frame(
+  ix=1:3,
+  b = c(1, 1, 2),
+  se = c(.4, .6, .6),
+  sig = c('Yes', 'No', 'Yes'))
+ggplot(df, aes(-ix, b, ymin=b-2*se, ymax=b+2*se, color=factor(sig))) +
+  geom_point() + geom_linerange() +
+  geom_hline(yintercept=0, linetype='dashed') +
+  coord_flip() +
+  scale_color_manual(values=c('black', 'red')) +
+  scale_x_continuous(breaks=c()) +
+  labs(x='Parameter', y='Estimate', color='Significant?',
+       title='Estimates ± 95% CIs')
+```
+
+```{r}
+gauss_bayes_plot = function(prior.m=0, prior.s=3,
+                            lik.m=10, lik.s=2,
+                            xmin=-20, xmax=20, dx=.025,
+                            hypothesis=NULL
+                            ) {
+  post.m = ((prior.m/prior.s**2) + (lik.m/lik.s**2)) / (1/prior.s**2 + 1/lik.s**2)
+  post.s = sqrt(1 / (1/prior.s**2 + 1/lik.s**2))
+
+  x = seq(xmin, xmax, dx)
+  df = data.frame(x,
+                  Prior=dnorm(x, prior.m, prior.s),
+                  Likelihood = dnorm(x, lik.m, lik.s),
+                  Posterior = dnorm(x, post.m, post.s))
+  df2 = df %>% gather(what, val, -x) 
+  df2$what = factor(df2$what, levels=c('Prior', 'Likelihood', 'Posterior'))
+  g = ggplot(df2, aes(x, val, ymax=val, fill=what, group=what, color=what, linetype=what)) +
+    geom_vline(xintercept=0, linetype='dashed') +
+    # geom_polygon(alpha=.5) +
+    geom_ribbon(ymin=0, alpha=.5) +
+    scale_fill_manual(values=c('blue', 'red', 'purple')) +
+    scale_color_manual(values=c('blue', 'red', 'purple')) +
+    scale_linetype_manual(values=c('solid', 'dashed', 'dotted')) +
+    theme(legend.position = c(0, 1), legend.justification = c(0, 1)) +
+    labs(x='Value of μ', y='Probability Density', 
+         fill='', color='', linetype='')
+  if(is.null(hypothesis)==FALSE){
+    h.df = data.frame(
+      x = hypothesis,
+      val = c(dnorm(hypothesis, prior.m, prior.s),
+              dnorm(hypothesis, post.m, post.s)),
+      what = c('Prior', 'Posterior')
+    )
+    g = g + geom_point(data=h.df, size=4, shape=21, color='black')
+  }
+  g
+}
+```
+
+```{r bayes-distributions, fig.width=7, fig.height=3}
+lik.m = 10
+lik.s = 2
+d = qnorm(seq(.01, .99, length.out = 10), lik.m, lik.s)
+gauss_bayes_plot(lik.m=lik.m, lik.s=lik.s) +
+   geom_point(data=data.frame(x=d, val=.275, what='Likelihood'),  mapping=aes(x=d)) +
+  labs(title='In Bayesian statistics, distributions represent beliefs')
+
+```
+
+
+```{r bayes-intervals, fig.width=7, fig.height=3, cache=FALSE}
+post.m = 6.923077
+post.s = 1.664101
+x = seq(-20, 20, .025)
+df = data.frame(x, Posterior = dnorm(x, post.m, post.s))
+f <- function(x, kind=F){
+  y <- dnorm(x, post.m, post.s)
+  is_inner = (x >= (post.m - 2*post.s)) & (x <= (post.m + 2*post.s))
+  if(kind=='inner')   y[!is_inner] <- NA
+  return(y)
+}
+
+ggplot(df, aes(x)) +
+  stat_function(fun=f, geom='area', fill='purple', color=NA, args=list(kind='inner'), alpha=.5) +
+  stat_function(fun=f, geom='area', fill=NA, color='black', alpha=1) +
+  geom_segment(x=post.m, xend=post.m, y=0, yend=dnorm(post.m, post.m, post.s)) +
+  geom_point(x=post.m, y=.25, color='purple') +
+  geom_errorbarh(mapping=aes(xmin=post.m - 2*post.s, xmax=post.m+2*post.s, y=.25),
+                 height=0, color='purple') +
+  coord_cartesian(ylim=c(0, .3)) +
+  labs(x='Posterior Distribution for β', y='Probability Density',
+       title='Bayesian Credible Intervals',
+       caption='The 95% credible interval contains 95% of the posterior density') +
+  geom_vline(xintercept=0, linetype='dashed')
+
+```
+
+```{r bayes-uniform-prior, fig.width=7, fig.height=3, cache=FALSE}
+prior.m = 0
+prior.s = 99
+lik.m = 10
+lik.s = 2
+post.m = ((prior.m/prior.s**2) + (lik.m/lik.s**2)) / (1/prior.s**2 + 1/lik.s**2)
+post.s = sqrt(1 / (1/prior.s**2 + 1/lik.s**2))
+
+d = qnorm(seq(.01, .99, length.out = 10), lik.m, lik.s)
+gauss_bayes_plot(0, 99, 10, 2) +
+   geom_point(data=data.frame(x=d, val=.275, what='Likelihood'),  mapping=aes(x=d)) +
+  labs(title='Bayesian Inference with a Uniform Prior',
+       caption='With a Uniform prior, Posterior = Likelihood')
+# 
+# x = seq(-20, 20, .025)
+# df = data.frame(x,
+#                 Prior=dnorm(x, prior.m, prior.s),
+#                 Likelihood = dnorm(x, lik.m, lik.s),
+#                 Posterior = dnorm(x, post.m, post.s))
+# df2 = df %>% gather(what, val, -x) 
+# df2$what = factor(df2$what, levels=c('Prior', 'Likelihood', 'Posterior'))
+# df2 %>%
+#   # filter(what!='Likelihood') %>%
+#   ggplot(aes(x, ymax=val, y=val, fill=what, group=what, color=what, linetype=what)) +
+#   geom_vline(xintercept=0, linetype='dashed') +
+#   geom_ribbon(ymin=0, alpha=.5) +
+#   geom_path() +
+#   scale_fill_manual(values=c('blue', 'red', 'purple')) +
+#   scale_color_manual(values=c('blue', 'red', 'purple')) +
+#   scale_linetype_manual(values=c('solid', 'dashed', 'dotted')) +
+#   theme(legend.position = c(0, 1), legend.justification = c(0, 1)) +
+#   labs(x='Value of β', y='Probability Density', fill='', color='', linetype='') +
+#   geom_point(data=data.frame(x=d, val=.275, what='Likelihood'), mapping=aes(x=d))
+```
+
+
+```{r bayes-50-50, fig.width=7, fig.height=3}
+x = seq(-20, 20, .025)
+df = expand.grid(x=x, s=c(.5, 1, 2)) %>%
+  mutate(dens = dnorm(x, 0, s),
+         ss = factor(s, labels=c('High', 'Medium', 'Low')))
+
+ggplot(df, aes(x, dens, color=ss, fill=ss)) +
+  geom_path() +
+  geom_ribbon(mapping=aes(ymax=dens, ymin=0), alpha=.5) +
+  geom_vline(xintercept=0, linetype='dashed') +
+  theme(legend.position = c(0, 1), legend.justification = c(0, 1)) +
+  labs(x='Value of β', y='Probability Density', 
+       color='Certainty', fill='Certainty',
+       title='A problem with posterior sign tests',
+       caption='In all cases, P(β > 0) = 0.5')
+```
+
+```{r output='asis'}
+bf = c(.25, .5, 1, 2, 4)
+data.frame(BF10 = bf,
+           BF01 = 1/bf) %>%
+  mutate_if(is.numeric, round, digits=2) %>%
+  kable(format='markdown')
+```
+
+```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE, fig.width=7, fig.height=3, cache=FALSE}
+bf = c(1/20, 1/10, 1/3, 1, 3, 10, 20)
+data.frame(BF10 = bf,
+           BF01 = 1/bf,
+           `Prior prob.` = scales::percent(.5),
+           `Posterior prob.` = scales::percent(bf / (bf+1))) %>%
+  mutate_if(is.numeric, round, digits=2) %>%
+  kable(format='markdown')
+```
+
+
+```{r bayes-savage-dickey, fig.width=10, fig.height=4, cache=FALSE}
+g1 = gauss_bayes_plot(prior.m=0, prior.s=2, lik.m=2, lik.s=1, xmin=-5, xmax=5, hypothesis = 0) +
+  labs(title='Narrow prior: BF favours H1')
+g2 = gauss_bayes_plot(prior.m=0, prior.s=20, lik.m=2, lik.s=1, xmin=-5, xmax=5, hypothesis = 0) +
+  labs(title='Broad prior: BF favours H0')
+gridExtra::grid.arrange(g1, g2, ncol=2)
+```
+
+
+
+## Bayesian Multiple Comparisons
+
+
+```{r}
+p = 20
+n = 50
+data = rnorm(p*n, 0, 1) %>% matrix(ncol = p) %>% data.frame() # colnames are X1, ..., X20
+
+## Critical correlations for p < .05
+rho = seq(0, 1, .01)
+tstat = rho / sqrt((1-rho^2)/(n-2))
+pval = pt(-tstat, df=n-1) * 2
+thresholds = c(.05, .01, .001)
+critical_rho = map_dbl(thresholds, ~rho[which.max(pval < .)])
+names(critical_rho) = thresholds
+critical_rho
+```
+
+```{r}
+correlations = cor(data) %>%
+  data.frame() %>%
+  rownames_to_column('v1') %>%
+  pivot_longer(cols=-v1, names_to='v2', values_to = 'rho') %>%
+  mutate(se = sqrt((1-rho^2)/(n-2)),
+         t = rho / se,
+         p.value = pt(-abs(t), df=n-2) * 2,
+         sig = ifelse(p.value < .05, 'Yes', 'No'),
+         v1 = factor(v1, levels=unique(v1), ordered = T),
+         v2 = factor(v2, levels=unique(v2), ordered = T)) %>%
+  filter(v1 < v2)
+mean(correlations$p.value < .05)
+```
+
+
+
+```{r corr-matrix, fig.width=8, fig.height=8}
+ggplot(correlations, aes(v1, v2, 
+           label=ifelse( v1 < v2, round(rho, 1), ''),
+           color=factor(sign(rho)))) +
+  geom_tile(color='black', alpha=.5, fill='white') +
+  geom_text(mapping=aes(alpha = sig)) +
+  scale_color_manual(values=c('blue', 'red')) +
+  scale_alpha_manual(values=c(.25, 1)) +
+  scale_x_discrete(position = "top") +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 0),
+        panel.grid = element_blank(),
+        legend.position='none') +
+  labs(x = '', y='', title='Correlation coefficients',
+       caption='Highlighted values show significant correlations')
+
+```
+
+```{r corr-ml, fig.width=10, fig.height=4}
+correlations %>%
+  filter(v1 < v2) %>%
+  # head(100) %>%
+  arrange(t) %>%
+  mutate(ix = 1:n()) %>%
+  ggplot(aes(ix, rho, ymin=rho-2*se, ymax=rho+2*se,
+             color=sig)) +
+  geom_point() +
+  geom_linerange() +
+  geom_hline(yintercept=0, linetype='dashed') +
+  labs(x='', y='Correlation coefficient (±95% CI)',
+       color='Statistically significant?', 
+       title='Correlations without correction') +
+  scale_color_manual(values=c('black', 'red')) +
+  scale_x_continuous(breaks=c()) +
+  coord_cartesian(ylim=c(-1, 1)) +
+  theme(legend.position = c(0, 1), 
+        legend.justification = c(0, 1))
+  # coord_flip() +
+  {}
+```
+
+```{r}
+ggplot(correlations, aes(rho, y=.5)) +
+  geom_point(position = position_jitter(height=.1)) +
+  coord_cartesian(ylim=c(0, 1))
+```
+
+```{r corr-bonferroni, fig.width=10, fig.height=4}
+k = nrow(correlations)
+alpha = .05
+# Adjusted CI is estimate ± se*se.adjustment
+# for k=1, se.adjustment is approx 2
+se.adjustment = qt(1 - .5 * alpha/k, df=n-1)
+  
+correlations %>%
+  mutate(sig.adj = ifelse(p.value < .05/k, 'Yes', 'No')) %>%
+  # head(100) %>%
+  arrange(t) %>%
+  mutate(ix = 1:n()) %>%
+  ggplot(aes(ix, rho, 
+             ymin=rho-se*se.adjustment,
+             max=rho+se*se.adjustment,
+             color=sig.adj)) +
+  geom_point() +
+  geom_linerange() +
+  geom_hline(yintercept=0, linetype='dashed') +
+  labs(x='', y='Correlation Coefficient\n(± Adjusted CI)',
+       color='Statistically significant?', 
+       title='Correlations with Bonferonni-adjusted CIs',
+       caption='We can control for multiple comparisons by using wider Confidence Intervals') +
+  scale_color_manual(values=c('black', 'red')) +
+  scale_x_continuous(breaks=c()) +
+  coord_cartesian(ylim=c(-1, 1)) +
+  theme(legend.position = c(0, 1), 
+        legend.justification = c(0, 1))
+```
+
+
+### Bayes Factors
+
+```{r}
+library(BayesFactor)
+correlations$bf = map2_dbl(correlations$v1, correlations$v2,
+                           function(v1, v2){
+                             extractBF(correlationBF(data[[v1]], data[[v2]]))$bf
+                           })
+
+
+```
+
+```{r corr-bfs, fig.width=8, fig.height=8}
+ggplot(correlations, aes(v1, v2, 
+           label=round(bf, 1),
+           color=factor(sign(rho)))) +
+  geom_tile(color='black', alpha=.5, fill='white') +
+  geom_text(mapping=aes(alpha = bf > 3)) +
+  scale_color_manual(values=c('blue', 'red')) +
+  scale_alpha_manual(values=c(.25, 1)) +
+  scale_x_discrete(position = "top") +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 0),
+        panel.grid = element_blank(),
+        legend.position='none') +
+  labs(x = '', y='', title='Bayes Factors',
+       caption='Highlighted values show BF > 3')
+```
+
+
+Adjusting for this is simple.
+If you actually only believe that one in every ten pairs of variables
+are likely to be correlated,
+your real prior odds are $\frac{P(H_1)}{P(H_0)} = \frac{1}{9}$,
+and your updated belief is
+$\frac{P(H_1|\text{Data})}{P(H_0|\text{Data})} = \frac{1}{9} \times BF_{10}$.
+
+```{r corr-bfs-adj, fig.width=8, fig.height=8}
+correlations %>%
+  mutate(bf.adj = bf * 1/9) %>%
+  ggplot(aes(v1, v2, 
+           label=round(bf.adj, 1),
+           color=factor(sign(rho)))) +
+  geom_tile(color='black', alpha=.5, fill='white') +
+  geom_text(mapping=aes(alpha = bf.adj > 3)) +
+  scale_color_manual(values=c('blue', 'red')) +
+  scale_alpha_manual(values=c(.25, 1)) +
+  scale_x_discrete(position = "top") +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 0),
+        panel.grid = element_blank(),
+        legend.position='none') +
+  labs(x = '', y='', title='Bayes Factors')
+```
+
+
+### Posterior Estimates
+
+
+#### Using the right priors
+
+
+```{r}
+prior.mean = 0
+prior.sd = .14
+prior.tau = 1/prior.sd^2
+
+correlations = correlations %>%
+  mutate(tau = 1/(se^2),
+         posterior.mean = (prior.mean*prior.tau + rho*tau) / (prior.tau + tau),
+         posterior.tau = prior.tau + tau,
+         posterior.se = 1/sqrt(posterior.tau),
+         ci.low = posterior.mean-2*posterior.se,
+         ci.high = posterior.mean+2*posterior.se,
+         confident = ifelse(sign(ci.low) == sign(ci.high), 'Yes', 'No'))
+
+```
+
+
+```{r corr-posterior, fig.width=10, fig.height=4}
+correlations %>%
+  arrange(t) %>%
+  mutate(ix = 1:n()) %>%
+  ggplot(aes(ix, posterior.mean, 
+             ymin=ci.low, 
+             ymax=ci.high,
+             color=confident)) +
+  geom_point() +
+  geom_linerange() +
+  geom_hline(yintercept=0, linetype='dashed') +
+  labs(x='', y='Correlation coefficient (±95% CI)',
+       title='Posterior estimates with 95% CIs',
+       color='CI excludes 0?') +
+  scale_color_manual(values=c('black', 'red')) +
+  scale_x_continuous(breaks=c()) +
+  coord_cartesian(ylim=c(-1, 1)) +
+  theme(legend.position = c(0, 1), 
+        legend.justification = c(0, 1))
+```
+
+
+```{r corr-posterior-vs-ml, fig.width=10, fig.height=4}
+correlations %>%
+  arrange(t) %>%
+  mutate(ix = 1:n()) %>%
+  pivot_longer(cols=c(rho, posterior.mean)) %>%
+  mutate(name = ifelse(name=='rho', 'Maximum likelihood', 'Bayes')) %>%
+  ggplot(aes(ix, value, color=name)) +
+  annotate(geom='rect', 
+           ymin=-.28, ymax=.28,
+           xmin=-1, xmax=nrow(correlations)+1,
+           alpha=.25, fill='grey') +
+  geom_point() +
+  geom_line(mapping=aes(group=ix), alpha=.5, color='black') +
+  geom_hline(yintercept=0, linetype='dashed') +
+  labs(x='', y='Correlation coefficient',
+       color='Estimate',
+       title='Bayesian estimates are shifted towards 0',
+       caption='Shaded region shows prior 95% CI') +
+  scale_color_manual(values=c('blue', 'brown')) +
+  scale_x_continuous(breaks=c()) +
+  coord_cartesian(ylim=c(-1, 1)) +
+  theme(legend.position = c(0, 1),
+        legend.justification = c(0, 1))
+```
+
+#### Using multilevel models
+
