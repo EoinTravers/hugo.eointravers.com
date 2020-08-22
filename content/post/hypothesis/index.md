@@ -20,6 +20,8 @@ and a few other sources I can't remember.
 When I first sat down to write, I wanted to do a short post about multiple comparisons in Bayesian analyses. However, I quickly realised to do so I needed to go over some background about frequentist and Bayesian hypothesis testing, and then when I started writing about the background I forgot to stop, leading to the essay below. If you know all the basics, feel free to skip straight to the 
 [**Bayesian Multiple Comparisons**](#bayesian-multiple-comparisons) section below.
 
+> The source code for all of the figure in this post can be found [here](https://github.com/EoinTravers/hugo.eointravers.com/blob/master/content/post/hypothesis/Source.Rmd).
+
 # The Basics
 
 Statistical inference lets us do two things:
