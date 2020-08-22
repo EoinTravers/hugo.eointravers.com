@@ -554,7 +554,7 @@ raster_plot(initial_cluster_matrix, dfx)
 ```
 
 
-![png](./index_12_0.png)
+![png](./index_13_0.png)
 
 
 Clearly, the clusters are wrong.
@@ -710,7 +710,7 @@ raster_plot(cluster_matrix, dfx)
 ```
 
 
-![png](./index_19_0.png)
+![png](./index_20_0.png)
 
 
 Better. Steps that occur at around the same time are now part of the same cluster.
@@ -748,6 +748,10 @@ dfx = select_wide_data(all_data, group, block)
 cluster_matrix = fit_meanshift_clusters(dfx)
 raster_plot(cluster_matrix, dfx)
 ```
+
+
+![png](./index_24_0.png)
+
 
 Cluster 25 contains steps that should really be split across two clusters,
 clusters 50 and 51 should probably be a single cluster.
