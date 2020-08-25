@@ -3,6 +3,7 @@ title: "Why does logistic regression overfit in high-dimensions?"
 date: "2020-08-25"
 author: admin
 summary: "Asymptotes, perfect separation, and the curse of dimensionality"
+draft: False
 ---
 
 > This post is an expanded version of my response to [this question](https://stats.stackexchange.com/q/469799/42952)
@@ -20,7 +21,7 @@ Why is this such an issue for logistic regression? There are three factors invol
 
 ## 1. Asymptotic Predictions
 
-In flogistic regression we use a linear model to predict $\mu$,
+In logistic regression we use a linear model to predict $\mu$,
 the log-odds that $y=1$
 $$
 \mu = \beta X
@@ -94,7 +95,7 @@ summary(m)
 
 ## 3. Curse of Dimensionality
 
-The more predictors you have (the higher the dimensionality), the more likely it is that it will be possible to perfectly seperate the two sets of values. As a result, overfitting becomes more of an issue when you have many predictors.
+The more predictors you have (the higher the dimensionality), the more likely it is that it will be possible to perfectly separate the two sets of values. As a result, overfitting becomes more of an issue when you have many predictors.
 
 To illustrate, here's the previously plotted data again,
 but without the second predictors.
@@ -109,7 +110,7 @@ perfectly separates $y=0$ from $y=1$. Adding the second predictor (the plot abov
 
 In practice, we would like a model that fits our training data well, but that doesn't strain itself trying to output probabilities of $0$ or $1$. To do this, we use *regularisation*: we use a model that tries to fit the training data well, while at the same time trying not to use regression weights that are too large. The most common approaches are *L1 regularisation*, which tries to keep the total *absolute values* of the regression weights $|\beta|$ low, and *L2* or *ridge regularisation*, which tries to keep the total *squared values* of the regression weights $\beta^2$ low.
 
-Each of these methods has advantages and disadvantages, but they're beyond the scope of this post. A useful property of L1 regularisation is that it often sets many of the regression weights to exactly $0$, meaning you can ignore many of your predictors, which is handy.  L2 regularisation is useful in that it's equivalent to fitting a [**Bayesian regression**](https://stats.stackexchange.com/q/474958/42952) model with Gaussian priors on $\beta$ (and using the *maximum a-posteriori* parameter estimate).
+Each of these methods has advantages and disadvantages, but they're beyond the scope of this post. A useful property of L1 regularisation is that it often sets many of the regression weights to exactly $0$, meaning you can ignore many of your predictors, which is handy.  L2 regularisation is useful in that it's equivalent to fitting a [**Bayesian regression**](https://stats.stackexchange.com/q/474958/42952) model with Gaussian priors on $\beta$ (and using the *maximum a-posteriori* parameter estimate).
 
 In either case, we need to set a *regularisation parameter* $\lambda$, which controls how hard the model tries to avoid using large regression weights. The best value of $\lambda$ is typically found using cross-validation for machine learning problems.
 
@@ -117,7 +118,7 @@ In either case, we need to set a *regularisation parameter* $\lambda$, which con
 
 ## Code
 
-```r
+```R
 library(tidyverse)
 theme_set(theme_classic(base_size = 20))
 
@@ -163,3 +164,4 @@ ggplot(df, aes(x1, y)) +
               method.args=list(family=binomial), se=T) +
   geom_point()
 ```
+
