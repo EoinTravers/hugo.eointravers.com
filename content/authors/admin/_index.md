@@ -93,9 +93,10 @@ user_groups:
 
 
 
-I'm a Cognitive (Neuro)Scientist
+I'm a cognitive neuroscientist
 at the UCL
-[Institute of Cognitive Neuroscience](http://www.ucl.ac.uk/icn).
+[Institute of Cognitive Neuroscience](http://www.ucl.ac.uk/icn),
+working in the [Neuroscience and Mental Health group](https://www.ucl.ac.uk/icn/research/research-groups/neuroscience-and-mental-health);
 
 I'm currently looking for a position in data science/analysis in London.
 I know lots of things about data, statistics, machine learning, Bayes, web development, Python, R, minds, and brains.
