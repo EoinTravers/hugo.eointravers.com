@@ -5,7 +5,7 @@ author: admin
 summary: "You're not the first person who has had to build a website. In this post, I cover some tools you should be familiar with before we get down to work."
 ---
 
-> It's been *a while* since the last post in this series. I haven't been totally idle.  I've built a whole load of online experiments, and developed a a series of workshops on the material I'll be covering in these posts. The next few posts should come fairly soon.
+> It's been *a while* since the last post in this series. I haven't been totally idle.  I've built a whole load of online experiments, and developed a series of workshops on the material I'll be covering in these posts. The next few posts should come fairly soon.
 
 ---
 
@@ -29,12 +29,12 @@ The posts will be (roughly) as follows:
 > Let me know what you think in the comments below, on twitter,
 > or by email (`eoin.travers@gmail.com`).
 
---- 
+---
 
 You are not the first person who has had to build a website.
 Web development is a multi-billion pound industry,
 and huge swathes of time and effort have gone into
-creating tools and resources that make the it easier.
+creating tools and resources that make this easier.
 In this post, I cover some tools you should be familiar with before we get to work.
 
 <link rel="stylesheet" type="text/css" media="all" href="style.css" />
@@ -48,7 +48,7 @@ There are no end of websites that will teach you how to build websites. For me, 
 - [W3schools](https://www.w3schools.com) is an older site which can also be useful, although it’s out of date in places.
 - Google also have a useful [web developers site](https://developers.google.com/web), although it doesn’t cover the basics as well as the Mozilla one.
 - The [Web Demystified](https://www.youtube.com/playlist?list=PLo3w8EB99pqLEopnunz-dOOBJ8t-Wgt2g) YouTube series looks good.
--  has some great examples of the fancier things you can do with CSS.
+-  [CSS Tricks](https://css-tricks.com/) has some great examples of the fancier things you can do with CSS.
 - https://www.smashingmagazine.com/ is for the real nerds.
 - [Hakim El Hattab](https://hakim.se/) creates some beautiful stuff using the tools we'll be learning about. Good for inspiration, and for stealing ideas.
 
@@ -56,7 +56,7 @@ There are no end of websites that will teach you how to build websites. For me, 
 
 All web browsers come with a set of built-in tools for inspecting and debugging the code underlying the websites you visit. [This post](https://webmasters.stackexchange.com/questions/8525/how-do-i-open-the-javascript-console-in-different-browsers/77337#77337) has details on how to access these tools on each browser (I'll be using Firefox, and you can find out more about the Firefox developer tools [here](https://developer.mozilla.org/en-US/docs/Tools)). There are a few related tools that we'll need.
 
-To explain how these work, we need to say a little about how what happens under the hood when you browse the internet (some of this was covered in [part 1](../web-1/)). Whenever you visit a page, either by typing in the [URL](https://en.wikipedia.org/wiki/URL) or following a link, your browser sends a request to the server (never mind which server for now) saying "please send me this page". The server responds by sending the HTML page over the internet to your browser, along with any resources that are included in the page, such as images, videos, and JavaScript and CSS code. Your browser then processes all of these files, uses that information to create a model of what the page should look like (the [document object model](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction), DOM), and uses this model to dictate what you see on your screen. 
+To explain how these work, we need to say a little about what happens under the hood when you browse the internet (some of this was covered in [part 1](../web-1/)). Whenever you visit a page, either by typing in the [URL](https://en.wikipedia.org/wiki/URL) or following a link, your browser sends a request to the server (never mind which server for now) saying "please send me this page". The server responds by sending the HTML page over the internet to your browser, along with any resources that are included in the page, such as images, videos, and JavaScript or CSS code. Your browser then processes all of these files, uses that information to create a model of what the page should look like (the [document object model](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction), DOM), and uses this model to dictate what you see on your screen. 
 
 ## Inspector
 
