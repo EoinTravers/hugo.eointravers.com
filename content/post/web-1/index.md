@@ -1,3 +1,4 @@
+
 ---
 title: "Online Experiments #1: How the Web Works"
 date: 2020-07-13
@@ -16,10 +17,17 @@ The posts will be (roughly) as follows:
 
 1. **How the Web Works** [this post]
 2. [Choosing the Right Tools for the Job](../web-2/)
-3. Setting the Scene: HTML and CSS [coming later]
-4. Making it Move: JavaScript and jQuery [coming later]
-5. Saving Data [coming later]
-6. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
+3. [The Web Developer's Toolbox](../web-3)
+4. Setting the Scene: HTML and CSS [coming later]
+5. Making it Move: JavaScript and jQuery [coming later]
+6. Saving Data [coming later]
+7. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
+
+> Working through lockdown, you don't get a lot of feedback on what you write.
+> If you have any comments on anything in these posts, including critical ones,
+> I want to hear from you!
+> Let me know what you think in the comments below, on twitter,
+> or by email (`eoin.travers@gmail.com`).
 
 # Part 1: How the Web Works
 

@@ -8,6 +8,10 @@ summary: "Simplicity vs Flexibility"
 draft: False
 ---
 
+
+
+---
+
 It's always been useful to be able to run experiments online.
 Post COVID-19, it's essential.
 In this series of posts, I cover what you need to know
@@ -15,11 +19,20 @@ to move your research online.
 The posts will be (roughly) as follows:
 
 1. [How the Web Works](../web-1/)
-2. **Choosing the Right Tools for the Job** [this post]
-3. Setting the Scene: HTML and CSS [coming later]
-4. Making it Move: JavaScript and jQuery [coming later]
-5. Saving Data [coming later]
-6. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
+2. **Choosing the Right Tools for the Job**
+3. [The Web Developer's Toolbox](../web-3)
+4. Setting the Scene: HTML and CSS [coming later]
+5. Making it Move: JavaScript and jQuery [coming later]
+6. Saving Data [coming later]
+7. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
+
+> Working through lockdown, you don't get a lot of feedback on what you write.
+> If you have any comments on anything in these posts, including critical ones,
+> I want to hear from you!
+> Let me know what you think in the comments below, on twitter,
+> or by email (`eoin.travers@gmail.com`).
+
+---
 
 # Part 2: Choosing the Right Tools for the Job
 
@@ -178,7 +191,7 @@ but I have a lot of faith in the PsychoPy team,
 and their python library is (was) my go-to tool for lab studies,
 so I have no problem recommending them!
 
-[Gorilla](https://gorilla.sc/) (££) provide a similar service.
+[Gorilla](https://gorilla.sc/?utm_medium=referral&utm_source=eointravers.com) (££) provide a similar service.
 Gorilla provides a Task Builder GUI for building standard experiments,
 a Questionnaire Builder for forms and questionnaires,
 and an Experiment Builder for putting forms, tasks, and logic
@@ -269,14 +282,14 @@ however they're generated,
 but the Pavlovia is mainly geared towards running experiments
 built and exported using PsycoPy (discussed above).
 
-[Gorilla](https://gorilla.sc/) (££) provide something similar.
+[Gorilla](https://gorilla.sc/?utm_medium=referral&utm_source=eointravers.com) (££) provide something similar.
 Experiments built using the Gorilla Builder tools (see above)
 can only be hosted on the Gorilla server.
-Gorilla also provide a [Code Editor](https://gorilla.sc/info/code-editor) tool,
+Gorilla also provide a [Code Editor](https://gorilla.sc/info/code-editor?utm_medium=referral&utm_source=eointravers.com) tool,
 which allows you to code your own experiments.
 These can be coded using the Gorilla JavaScript framework
 (which I haven't tried),
-using jsPsych (which is [well-documented](https://gorilla.sc/support/articles/jspsych) on their website),
+using jsPsych (which is [well-documented](https://gorilla.sc/support/articles/jspsych?utm_medium=referral&utm_source=eointravers.com) on their website),
 or coded from scratch.
 There are a few quirks to uploading your own JavaScript to Gorilla,
 which I'll cover in a later post.
