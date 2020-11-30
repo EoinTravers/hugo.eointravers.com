@@ -88,9 +88,9 @@ There are a few other tools that are very useful for any kind of coding and soft
 
 Here are some other links to get you started:
 
-- [GitHub](www.github.com) and [Git](www.git-scm.com) for version control. See [*Curating Research Assets: A Tutorial on the Git Version Control System*](https://journals.sagepub.com/doi/full/10.1177/2515245918754826).
+- [GitHub](http://www.github.com) and [Git](http://www.git-scm.com) for version control. See [*Curating Research Assets: A Tutorial on the Git Version Control System*](https://journals.sagepub.com/doi/full/10.1177/2515245918754826).
 - A lot of things that take a great deal of clicking and scrolling to do in a graphical interface can be done quickly and easily on the *terminal* or *command line*, if you know how. For web development in particular, it's useful to be familiar with the *BASH* terminal. This comes with OSX and Linux systems, and can be installed on Windows. I don't know a single cohesive introduction to this, but these look useful.
   - [Earth Lab tutorial](https://www.earthdatascience.org/courses/intro-to-earth-data-science/open-reproducible-science/bash/)
   - [Introduction to Bash](https://cs.lmu.edu/~ray/notes/bash/)
   - [Git Bash for Windows](https://gitforwindows.org/) (see also [this](https://www.atlassian.com/git/tutorials/git-bash))
-- [StackOverflow](www.stackoverflow.com) is a Q&A site for programmers. It's a badly kept secret that most programmers spend far more time searching for answers on StackOverflow and copying it into their own code than they do actually writing things themselves. There's no shame in this. Also check out [CrossValidated](https://stats.stackexchange.com/), which is the same thing but for statistics. There's also one for [Psychology and Neuroscience](https://psychology.stackexchange.com/), although it isn't as popular.
+- [StackOverflow](http://www.stackoverflow.com) is a Q&A site for programmers. It's a badly kept secret that most programmers spend far more time searching for answers on StackOverflow and copying it into their own code than they do actually writing things themselves. There's no shame in this. Also check out [CrossValidated](https://stats.stackexchange.com/), which is the same thing but for statistics. There's also one for [Psychology and Neuroscience](https://psychology.stackexchange.com/), although it isn't as popular.
