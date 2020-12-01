@@ -18,8 +18,8 @@ The posts will be (roughly) as follows:
 1. **How the Web Works** [this post]
 2. [Choosing the Right Tools for the Job](../web-2/)
 3. [The Web Developer's Toolbox](../web-3)
-4. Setting the Scene: HTML and CSS [coming later]
-5. Making it Move: JavaScript and jQuery [coming later]
+4. [Setting the Scene: HTML and CSS](../web-4)
+5. Making it Move: JavaScript and jQuery [coming soon]
 6. Saving Data [coming later]
 7. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
 

@@ -1,0 +1,16 @@
+#fix, #stimuli {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+}
+
+#fix {
+    margin: 0;
+    font-size: 32pt;
+
+}
+
+.target, .flanker {
+    height: 10vh;
+}
