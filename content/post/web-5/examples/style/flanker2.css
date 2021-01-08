@@ -1,0 +1,8 @@
+#fix {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    font-size: 32pt;
+}
