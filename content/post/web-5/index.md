@@ -9,6 +9,31 @@ draft: False
 ---
 
 
+
+It's always been useful to be able to run experiments online.
+Post COVID-19, it's essential.
+In this series of posts, I cover what you need to know
+to move your research online.
+The posts will be (roughly) as follows:
+
+1. [How the Web Works](../web-1/)
+2. [Choosing the Right Tools for the Job](../web-2/)
+3. [The Web Developer's Toolbox](../web-3/)
+4. [Setting the Scene: HTML and CSS](../web-4/)
+5. **Hello, JavaScript**
+6. Saving Data [coming later]
+7. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
+
+> Working through lockdown, you don't get a lot of feedback on what you write.
+> If you have any comments on anything in these posts, including critical ones,
+> I want to hear from you!
+> Let me know what you think in the comments below, on twitter,
+> or by email (`eoin.travers@gmail.com`).
+
+---
+
+# Hello, JavaScript
+
 So we've created a HTML web page, filled it with all of the elements we're going to present in our experiment, and used CSS to style them. Our next step is to make things a little more dynamic. To do this, we'll use JavaScript, and in particular the [jQuery](http://jquery.com) JavaScript library.
 
 This post is not an introduction to JavaScript, because like HTML and CSS, there are already plenty of excellent JavaScript  tutorials out there. If you’re not already familiar with the language, I suggest reading through MDN’s [JavaScript First Steps](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/First_steps) tutorials, in particular the first two:  [What is JavaScript](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/First_steps/What_is_JavaScript) and  [A first splash into JavaScript](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/First_steps/A_first_splash). Once you're comfortable with the basics of JavaScript, in particular the different kinds of variables, and how functions work, read on.
@@ -17,7 +42,7 @@ This post is, however, quite long and quite abstract. Together with the MDN tuto
 
 ## JavaScript Basics: A Recap
 
-I'm assuming you've worked through the tutorials, or know the basics of JavaScript. Just to sure, this section goes quickly through some of the syntax you'll need to be familiar with to understand what follows. If you see some code here you don't understand, go back to the basics.
+I'm assuming you've worked through the tutorials, or know the basics of JavaScript. Just to be sure, this section goes quickly through some of the syntax you'll need to be familiar with to understand what follows. If you see some code here you don't understand, go back to the basics.
 
 > All of the code below can be run directly in the JavaScript console. The first few bits of code will run on any page. Lines  starting with `//` are comments, but lines starting with `//>` show the output of the command on the previous line. When you run these commands  yourself, also try clicking on the outputs or hovering the mouse over them to see what happens.
 
@@ -38,11 +63,14 @@ s + ' world!'
 //> "Hello world!"
 
 // Booleans
-true == false
+1 == 1
+//> true
+1 == 2
 //> false
-// Booleans
 true == true
 //> true
+true == false
+//> false
 false == false
 //> true
 if(x < 100){
@@ -231,7 +259,7 @@ var flankers = document.getElementsByClassName('flanker');
 var paragraphs = document.getElementsByTagName('p');
 ```
 
-Since we can have multiple elements with the same class or tag name, these functions return `HTMLCollection`s. Don't worry too much about this, as we're about to move to jQuery in a moment anyway.
+Since we can have multiple elements with the same class or tag name, these functions return a `HTMLCollection`. Don't worry too much about this, as we're about to move to jQuery in a moment anyway.
 
 ```js
 flankers
@@ -285,7 +313,7 @@ $('#feedback')                // Query selector
 
 ```
 
-There are[ plenty of other jQuery methods](https://api.jquery.com/category/manipulation/) available for manipulating the DOM, but for online experiments you'll only need a few. Here's an annotated list of the one I use most.
+There are[ plenty of other jQuery methods](https://api.jquery.com/category/manipulation/) available for manipulating the DOM, but for online experiments you'll only need a few. Here's an annotated list of the ones I use most.
 
 ```js
 // Manipulate the DOM
@@ -330,7 +358,7 @@ $('#my-element').off('click'); // Remove click events for this element
 $('#my-element').off();        // Remove all events
 ```
 
-An element can have more than one event listener attached. This can cause problems if you're not careful. Let's say you have two response buttons on your page, both with the class `respone-btn`. You run `$('.response-btn').one('click', do_something)`. You then click the first button, `do_something()` happens, and that button is deactivated. On the next trial, you run `$('.response-btn').one('click', do_something)` again. The second button now has two event listeners, so clicking it will trigger `do_something()` twice. Whoops. This is avoided by explicitly turning off both buttons, for instance at the start of the `do_something()` function: `$('.response-btn').off('click')`.
+An element can have more than one event listener attached. This can cause problems if you're not careful. Let's say you have two response buttons on your page, both with the class `respone-btn`. You run `$('.response-btn').one('click', do_something)`. You then click the first button, `do_something()` happens, and that button is deactivated. On the next trial, you run `$('.response-btn').one('click', do_something)` again. The second button now has two event listeners, so clicking it will trigger `do_something()` twice. Whoops. This is avoided by explicitly turning off both buttons, for instance at the start of the `do_something()` function: `$('.response-btn').off('click')`.
 
 #### .ready()
 
@@ -402,7 +430,7 @@ $(document).on('keydown', function(event){
 
 ## Timeouts and Intervals
 
-The final tool we need to cover are the `setTimeout()` and `setInterval()` functions, used to make a function run after a certain amount of time has elapsed. These functions are actually standard JavaScript, not jQuery. I guess that they were simple enough to use as they were, so there was no need to create a simplified version for jQuery.
+The final major tools we need to cover are the `setTimeout()` and `setInterval()` functions, used to make a function run after a certain amount of time has elapsed. These functions are actually standard JavaScript, not jQuery. I guess that they were simple enough to use as they were, so there was no need to create a simplified version for jQuery.
 
 `setTimeout()` sets a function to run after a specified number of milliseconds have passed.
 
@@ -440,8 +468,8 @@ function say_hi(name){
     console.log('Hi, ' + name);
 }
 //  `say_hi` is the function name. 
-// `say_hi()` is a call to that function.
-setTimeout(say_hi('you'));
+// `say_hi('you')` is a call to that function.
+setTimeout(say_hi('you'), 2000);
 // Executes immediately:
 //> "Hi, you"
 
@@ -502,7 +530,7 @@ There are a few things I need to mention briefly before we're ready to finally m
 
 In other words, Bootstrap is a big CSS file, some accompanying JavaScript, and a set of HTML templates that make it easy to create modern-looking websites, quickly. Bootstrap is very popular, and Bootstrap websites are easily recognisable (it was originally developed at Twitter). Bootstrap is automatically loaded for all Gorilla experiments, so we’ll use it for all our experiments too. I mostly use it for it’s nice [buttons](https://getbootstrap.com/docs/4.5/components/buttons/).
 
-If you're already using jQuery, including Bootstrap on your page is just a matter of adding links to the `bootstrap.js` (JavaScript) and `bootstrap.css` (CSS) files, which I've saved in the `libs/` folder.
+If you're already using jQuery, including Bootstrap on your page is just a matter of adding links to the `bootstrap.js` (JavaScript) and `bootstrap.css` (CSS) files, which I've saved in the `libs/` folder.
 
 ```html
 <script src="libs/bootstrap.js"></script>
@@ -571,9 +599,9 @@ my_list.map( val => console.log('Say ' + val));
 
 ### Cross-Browser Compatibility
 
-Possibly the most annoying thing about web development is that your code is going to be run on all kinds of computers, using different operating systems, different web browsers (and different versions of each browser), with different settings, keyboard layouts, screen sizes, languages, and so on. Because different browsers do things in slightly different ways (particularly when it comes to JavaScript), it's important to ensure that your experiment works on all of the setups your participants are likely to be using, not just on your own computer. This is done by a) testing your code in multiple setups (or asking your friends and colleagues to do it for you), b) checking the *browser compatibility* section in the MDN documentation (e.g. [here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key#browser_compatibility)), and c) preventing participants using incompatible browsers (such as old versions of Internet Explorer) from completing your experiment.
+Possibly the most annoying thing about web development is that your code is going to be run on all kinds of computers, using different operating systems, different web browsers (and different versions of each browser), with different settings, keyboard layouts, screen sizes, languages, and so on. Because different browsers do things in slightly different ways (particularly when it comes to JavaScript), it's important to ensure that your experiment works on all of the setups your participants are likely to be using, not just on your own computer. This is done by a) testing your code in multiple setups (or asking your friends and colleagues to do it for you), b) checking the *browser compatibility* section in the MDN documentation (e.g. [here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key#browser_compatibility)), and c) preventing participants using incompatible browsers (such as old versions of Internet Explorer) from completing your experiment.
 
-For much more on this, check the MDN tutorial on [**Cross-Browser Compatibility** ](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Cross_browser_testing).
+For much more on this, check the MDN tutorial on [**Cross-Browser Compatibility**](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Cross_browser_testing). I'll come back to this issue in a later post.
 
 ### Advanced topics
 
@@ -582,8 +610,8 @@ These are things you don't need at all, but might want to check out just for fun
 - [D3.js](https://d3js.org/) (*Data Driven Documents*) is "a JavaScript library for manipulating documents based on data. D3 helps you bring data to life using HTML, SVG, and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers  without tying yourself to a proprietary framework, combining powerful  visualization components and a data-driven approach to DOM manipulation." D3 powers a lot of the cool interactive visualisations you see online.
 - [Observable](https://observablehq.com/) is a sophisticated platform for data analysis and visualisation using JavaScript. It's created by the guy responsible for D3.js. I don't fully understand it, but it looks very cool.
 - [Reveal.js](https://revealjs.com/) is "an open source HTML presentation framework. It's a tool that  enables anyone with a web browser to create fully-featured and beautiful presentations for free. Presentations made with reveal.js are  built on open web technologies. That means anything you can do on the  web, you can do in your presentation. Change styles with CSS, include an external web page using an `<iframe>` or add your own custom behavior using our [JavaScript API](https://revealjs.com/api)." 
-- You might want to look into newer JavaScript *frameworks*, such as [React](https://reactjs.org/) (*"A JavaScript library for building user interfaces"*). However, be warned. Web developers have a *weird* professional culture, where everyone has to be constantly moving to the coolest, newest tool, and abandoning the old ones. By contrast, the approach we're using, where we put together some hand-written HTML and CSS, plus enough JavaScript and jQuery to get it moving, is old as the hills (well, 2012, when I did my first online experiment), and desperately unfashionable. The endless churn of JavaScript tools is discussed seriously [here](https://stackoverflow.blog/2018/01/11/brutal-lifecycle-javascript-frameworks/), and frivolously [here](https://hackernoon.com/how-it-feels-to-learn-javascript-in-2016-d3a717dd577f).
+- You might want to look into newer JavaScript *frameworks*, such as [React](https://reactjs.org/) (*"A JavaScript library for building user interfaces"*). However, be warned. Web developers have a *weird* professional culture, where everyone has to be constantly moving to the coolest, newest tool, and abandoning the old ones. By contrast, the approach we're using, where we put together some hand-written HTML and CSS, plus enough JavaScript and jQuery to get it moving, is old as the hills (well, 2012, when I did my first online experiment), and desperately unfashionable. The endless churn of JavaScript tools is discussed seriously [here](https://stackoverflow.blog/2018/01/11/brutal-lifecycle-javascript-frameworks/), and frivolously [here](https://hackernoon.com/how-it-feels-to-learn-javascript-in-2016-d3a717dd577f).
 
 ## Conclusion
 
-At this point, you should know the basics of how JavaScript and jQuery work, and have a good idea of how we can use these tools to a) manipulate the contents of a web page, and b) handle user inputs, and delay things where necessary. Although I've barely mentioned online experiments in this post, these are the fundamentals you'll need, alongside with a working knowledge of HTML and CSS, to get your online experiments -- even fairly complex experiments -- up and running. In the next post, we'll apply these methods to the Flanker example, turning it from a static web page to to a finish online experiment. 
+At this point, you should know the basics of how JavaScript and jQuery work, and have a good idea of how we can use these tools to a) manipulate the contents of a web page, and b) handle user inputs, and delay things where necessary. Although I've barely mentioned online experiments in this post, these are the fundamentals you'll need, alongside with a working knowledge of HTML and CSS, to get your online experiments -- even fairly complex experiments -- up and running. In the next post, we'll apply these methods to the Flanker example, turning it from a static web page to a finished online experiment. 

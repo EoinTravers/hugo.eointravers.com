@@ -20,7 +20,7 @@ The posts will be (roughly) as follows:
 2. [Choosing the Right Tools for the Job](../web-2/)
 3. [The Web Developer's Toolbox](../web-3)
 4. **Setting the Scene: HTML and CSS**
-5. Making it Move: JavaScript and jQuery [coming soon]
+5. [Hello, JavaScript](../web-5/)
 6. Saving Data [coming later]
 7. The Fancy Stuff: Animation, Canvas Rendering, Multimedia, and More [coming later]
 
@@ -91,7 +91,8 @@ selector {
 
 The `selector` is a command that *selects* certain elements on the page. You can select all tags of a particular type, for example all `<p>` tags, by using the tag name as the selector. Alternatively, you can select all tags with a particular `class` attribute (e.g. `'instructions'` with the selector `.instructions`), or select a specific element by its `id` (e.g. `#paragraph1`). More complicated selectors are also available, for instance `p .text` applies to all `<p>` tags that also have a class of `'text'`, while `p, a` applies to all `<p>` tags and to all `<a>` tags.
 
-The `properties` and `values` are the CSS rules that you want to apply to the elements you've selected. You can find a full list of the available properties [here](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference), but we'll typically only need a few of these, such as `color`, `position`, and `width`, which we'll cover shortly. Finally, anything between `/*` and `*/` is a in CSS is a comment.
+The `properties` and `values` are the CSS rules that you want to apply to the elements you've selected. You can find a full list of the available properties [here](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference), but we'll typically only need a few of these, such as `color`, `position`, and `width`, which we'll cover shortly.
+Finally, anything between `/*` and `*/` in CSS is a comment.
 
 ```css
 /* Make all <p> tags blue */
