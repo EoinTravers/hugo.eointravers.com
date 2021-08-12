@@ -44,7 +44,11 @@ We can show this with a quick simulation (although explaining exactly what is go
 
 ![](static/1.png)
 
+Importantly, responses collected online will be on average noisier than responses collected as part of PHQ-8's validation (trust me on this) or collected in the clinic (I assume). Online responses will also be more variable in terms of how noisy is data from individual participants: some people will pay attention, some won't. The former means that online data will be miscalibrated, compared to the clinical validation data. The latter means that individual differences analyses of online data will be more confounded than analyses of clinical data (thanks to Marcos Economides for pointing out this link was missing).
+
 > In a recent preprint, [Zorowitz, Niv, and Bennett](https://psyarxiv.com/rynhk) point out that some additional problems can arise when you're looking at correlations between multiple questionnaires with this kind of bias, or questionnaires and other measures where not paying attention affects scores. If, for example, participants who don't pay attention end up with inflated depression scores, and also with poor performance on a task, this could give the false impression that people with depression struggle with this task.
+
+It's worth thinking about what this means for the validity and reliability of these measures. Clearly, this bias is a blow to the validity of measures like PHQ-8 in online samples. Rather than being a pure(ish) measure of depression, PHQ-8 in this context is a measure of both depression and inattention. As Jon Roiser and Alex Pike have pointed out (unfortunately, I can't remember who said it first), this is complicated by the fact that depression can lead to inattention, so it's hard to cleanly pull things apart. Suprisingly, though, the bias should actually boost the reliabilitiy of our measures. Reliability is, roughly speaking, the ratio of *individual differences* to *individual differences plus measurement error*. A measure that picks up on individual differences in two constructs, depression and inattention, will therefore be more reliable than one that picks up on only one of those constructs (assuming that they don't cancel each out, which they don't here).
 
 ## PHQ-8's bias makes sense for patients, but not for the general population
 
