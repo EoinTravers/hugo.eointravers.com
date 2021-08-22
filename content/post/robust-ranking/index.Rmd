@@ -1,0 +1,277 @@
+---
+title: "Robust Ranking with Multilevel Models and Partial Pooling"
+author: "admin"
+date: '2021-08-22'
+output:
+  html_document:
+    preserve_yaml: true
+  md_document:
+    preserve_yaml: true
+summary: "Distrust single 5-star reviews...with maths!"
+source: jupyter
+toggle: "true"
+---
+
+```{r echo=FALSE, results='hide'}
+library(knitr)
+opts_knit$set(root.dir=normalizePath('.'))
+opts_chunk$set(fig.path = "./figures/")
+```
+
+Ranking objects - users, products, content, etc. - by some metric is a common task faced by data scientists. In real-world data, this can be tricky, because it's often the case that some objects have very little data. The classic example of this is a new restaurant with a single 5-star review. Should it rank above or below a competitor with 4.5 stars from 5 review? What about a competitor with 4.5 stars from 500 review?
+
+Multilevel models provide a natural solution to this problem. To explain how they do this, I need to first talk about *priors*. In Bayesian statistics, your prior about a number represents what you believe that number is likely to be before seeing any evidence. For example, if a new product is launched on an online marketplace, and you only know the product category (e.g. "musical instruments"), what kind of review score do you think that product will eventually have? Your best guess is whatever the average review score is for existing products in that category, and your certainty depends on how variable the existing review scores are: if 95% of existing products have scores of between 3 and 4, you're probably 95% certain that the new product will also be in this range.
+
+What if the product has a single review? Well, if that review is below average, chances are the reviews yet to come will be a little better. If the first review is above average, chances are the next reviews will be a little worse. This is what we call *regression to the mean*. Your best guess is now somewhere between average of the existing reviews (your prior) and the single review score. As more and more reviews come in, you have more information about the product, so your best guess gets closer to what the reviews actually say, and is less and less influenced by the prior. This is the principle behind optimal Bayesian decision-making.
+
+Our task is a little different. We have a whole collection of products, some of which have lots of reviews, and some have only a few or a single review (setting aside the products with no reviews at all). We want to figure out what our best estimates are for the quality of every product, based on the reviews we have, taking into account the different number of reviews per product.
+
+Let's get started. First, let's import our R packages, download some example data, and set up a few utility functions.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lme4)
+theme_set(theme_minimal(base_size = 16))
+DOWNLOAD = FALSE
+
+# Some handy functions
+round_df = function(df, digits = 2) mutate_if(df, is.numeric, round, digits = digits)
+scale_signed = function(x) paste0(ifelse(x >= 0, "+", ""), x)
+
+if(DOWNLOAD){
+  curl::curl_download('http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/ratings_Musical_Instruments.csv',
+                      'data/reviews.csv')
+}
+```
+
+Next, we load the data, and because things take a while to run with 500K rows, select 10K at random to analyse.
+
+```{r message=FALSE, warning=FALSE}
+full_data = read_csv('../../../../../GitHub/RScribbles/data/reviews.csv',
+                     col_types = cols(),
+                     col_names = c('user', 'item', 'rating', 'timestamp'))
+data = sample_n(full_data, 10000)
+glimpse(full_data)
+```
+
+We'll start with the naive approach: for each product, calculate the average rating, the standard deviation (SD), along with the number of ratings, and the standard error of measurement (SD), $\text{SEM} = \frac{\text{SD}{\sqrt(N)}$. For products with only a single rating, the SD and SEM are undefined. We also calculate the rating ± SEM, useful for plotting.
+
+```{r}
+item_ratings = data %>%
+  group_by(item) %>%
+  summarise(mean = mean(rating),
+            n = n(),
+            sd = sd(rating)) %>%
+  mutate(sem = sd/sqrt(n),
+         low = mean - sem,
+         high = mean + sem) %>%
+  rename(rating = mean)
+```
+
+Unsurprisingly, the top 10 products all have a single 5-star review.
+
+```{r}
+item_ratings %>%
+  arrange(-rating) %>%
+  head(10)
+```
+
+
+
+```{r}
+item_ratings %>%
+  arrange(-rating) %>%
+  mutate(ix = 1:n()) %>%
+  ggplot(aes(ix, rating, ymin=low, ymax=high)) +
+  geom_point() +
+  geom_ribbon(alpha = .5) +
+  labs(x = 'Item', y = 'Mean Rating (±SEM)',
+       title = 'Items sorted by mean rating')
+```
+
+One crude solution here is to just look at products with a minimum number of reviews.
+
+```{r}
+max_n = 20
+g = ggplot(item_ratings, aes(n)) +
+  geom_histogram(fill = 'skyblue', color = 'white',
+                 breaks = seq(.5, max_n+.5)) +
+  coord_cartesian(xlim = c(1, max_n)) +
+  scale_x_continuous(breaks = 1:max_n) +
+  labs(x = 'Number of Ratings',
+       y = 'Number of Products')
+g + geom_hline(linetype = 'dashed', yintercept = 0)
+```
+
+```{r warning=FALSE}
+g + scale_y_log10() +
+  labs(y = 'Number of Products (log scale)')
+```
+
+```{r}
+item_ratings %>%
+  filter(n > 5) %>%
+  arrange(-rating) %>%
+  head(10)
+```
+
+> Since these reviews can only be integers from 1 to 5, we're already bending some statistical rules by treating them like continuous numbers can calculating means, SDs, and SEMs. For example, if a product has three reviews of exactly 4/5, this would be impressive consistency if reviews of 3.6 or 4.4 were possible, but not so impressive since people have to round to the nearest digit. I return to this below.
+
+## Multilevel Model
+
+The simplest multilevel model for this problem looks as follows:
+
+-   Let $\theta_i$ be the quality of each individual product $i$.
+-   The quality of the products in this category follows a normal distribution, with mean $\mu$ and standard deviation is $\sigma$: $\theta_i \sim \text{Normal}(\mu, \sigma)$
+-   Each product $i$ has $n$ reviews, $y_{i,1}, y_{i,2}, \dots, y_{i,n}$, where $n$ differs for each product.
+-   These reviews follow a normal distribution, with mean $\theta_i$ and standard deviation $\gamma$, $y_i \sim \text{Normal}(\theta_i, \gamma)$. We assume the standard deviation $\gamma$ is the same for all products.
+
+Let's go ahead and fit the model, and then we can work through what it's doing.
+
+```{r}
+fit = lmer(rating ~ 1 + (1|item), data = data)
+summary(fit)
+```
+
+```{r}
+fit_coefs = broom.mixed::tidy(fit) %>% round_df(2)
+fit_coefs
+```
+
+The main parameters were as follows:
+
+```{r results = 'asis'}
+walk2(fit_coefs$estimate, c('μ', 'σ', 'γ'), function(est, term){
+  sprintf('\n- %s = %.2f', term, est) %>% cat()
+})
+```
+
+From the model fit, we can extract out the estimates of $\theta$ for each product.
+
+```{r}
+# The average quality, mu
+overall_estimate = fixef(fit)[[1]]
+# How much each product differs from average
+item_estimate_diffs = ranef(fit)$item
+item_estimates = overall_estimate + item_estimate_diffs
+
+# We can extract the standard errors for each product.
+# This is VERY slow with the full data set, we only use it for plotting,
+# and varies very little across products thanks to partial pooling,
+# so let's skip it if using the full data set.
+if(nrow(item_estimates) > 10000){
+  item_sems = rep(.4, nrow(item_estimates))
+} else {
+  item_sems = arm::se.ranef(fit)$item %>% unname()
+}
+
+# Combine this into a data.frame
+mlm_item_estimates = data.frame(
+  item = rownames(item_estimates),
+  model_rating = item_estimates[[1]],
+  model_sem = item_sems[[1]]) %>%
+  mutate(
+    model_low  = model_rating - model_sem,
+    model_high = model_rating + model_sem
+  )
+mlm_item_estimates %>% head() %>% round_df(2)
+```
+
+```{r}
+combined_item_ratings = item_ratings %>%
+  inner_join(mlm_item_estimates, by = 'item')
+combined_item_ratings %>% head() %>% round_df(2)
+```
+
+We can see that the range of estimated quality ratings is a lot narrower, and no items have an estimate of five stars.
+
+```{r}
+combined_item_ratings %>%
+  arrange(-model_rating) %>%
+  mutate(ix = 1:n()) %>%
+  ggplot(aes(ix, model_rating, ymin=model_low, ymax=model_high)) +
+  geom_point() +
+  geom_ribbon(alpha = .4) +
+  labs(x = 'Item', y = 'Model Estimated Quality (±SEM)')
+```
+
+These estimates provide a more robust way of ranking the products, and can be used directly as they are.
+
+```{r}
+combined_item_ratings %>%
+  arrange(-model_rating) %>%
+  head(10) %>%
+  select(item, model_rating, everything()) %>%
+  round_df(2)
+```
+
+What have we done? Let's compare the mean ratings and the estimates from the model for each product. Since so many products only have a single rating, and so are identical in this plot, I've slightly jittered the points to make them visible.
+
+```{r}
+ggplot(combined_item_ratings, aes(rating, model_rating)) +
+  geom_point(alpha = .1,
+             position = position_jitter(width = .05,
+                                        height = .05)) +
+  geom_abline(linetype = 'dashed', intercept = 0, slope = 1) +
+  coord_equal(xlim = c(1, 5),
+              ylim = c(1, 5)) +
+  labs(x = 'Mean Rating', y = 'Estimated Rating') +
+  geom_hline(linetype = 'dotted', yintercept = fit_coefs$estimate[1])
+```
+
+We can see that in line with the Bayesian idea discussed above, if the mean rating for a product was less than $\mu$ =`fit_coefs$estimate[1]`, the estimate for that product is shifted upwards (points above the diagonal line), while if the mean rating is above this value, the estimate is shifted lower. This adjustment is known as *shrinkage*: the estimates are *shrunk* towards the group mean.
+
+By how much the estimate is shifted depends on how reliable each product's data is, which here depends on the number of ratings, and to a lesser extent on the variability of those ratings. The less reliable an average rating is, and the further it is from the average, the more it is adjusted towards the average.
+
+```{r fig.width=12*1, fig.height=3*1}
+combined_item_ratings %>%
+  mutate(shrinkage = model_rating - rating,
+         binned_rating = sprintf('Mean rating ≈ %i', round(rating))) %>%
+  ggplot(aes(n, shrinkage)) +
+  facet_wrap(~binned_rating, ncol = 5) +
+  geom_point(alpha = .1,
+             position = position_jitter(height=.1, width=0)) +
+  geom_hline(linetype = 'dashed', yintercept = 0) +
+  scale_x_log10() +
+  scale_y_continuous(labels = scale_signed) +
+  coord_cartesian(ylim = c(-5, 5)) +
+  labs(x = 'Number of ratings (log scale)', y = 'Adjustment due to shrinkage')
+```
+
+## Further Considerations
+
+The analysis above is a big improvement on just using the average ratings, but there is still room for improvement. I'll finish by discussing a few ways this approach could be improved upon.
+
+### Discrete Ratings
+
+As mentioned above, these ratings aren't on a proper interval scale: reviewers can only select a digit from 1 to 5, and we can't be sure that the difference between 1 and 2, for instance, is really the same as the difference between 4 and 5. This is an issue for our naive analysis, where we calculate simple means and SDs, and for our multilevel model.
+
+Fortunately, this can be addressed by using an *ordinal logistic* multilevel model, which treats the five response options as ordered categories rather than continuous numbers. See [here](https://stats.stackexchange.com/a/238675) for tools that allow you to fit these models in R.
+
+### Missing Data
+
+We only have some ratings, by some users, of some products. We assume in the analyses above that the number of reviews a product gets is completely random, and doesn't depend on the quality of the product. Is this assumption reasonable? Let's check.
+
+```{r}
+ggplot(item_ratings, aes(rating, n)) +
+  # Fit a poisson regression
+  stat_smooth(formula = y ~ x, method = 'glm',
+              method.args = list(family = 'poisson')) +
+  geom_hline(linetype = 'dashed', yintercept = 1) +
+  labs(x = 'Average Rating', y = 'Number of Ratings')
+```
+
+```{r warning=FALSE}
+ggplot(item_ratings, aes(n, rating)) +
+  stat_smooth(method = 'lm', formula = y ~ x) +
+  stat_summary(fun.data = mean_se) +
+  scale_x_log10() +
+  labs(x = 'Number of ratings (log scale)',
+       y = 'Average rating')
+```
+
+It looks like produces with more positive average rating (better products?) also get reviewed more often. This makes sense, if you think that people are more likely to buy, and so go on to review, highly-rated products.
+
+This will bias our estimate of the average product quality, for fairly complicated reasons: high quality products receive more reviews, so their ratings are more reliable, and so they play a bigger role in estimating $\mu$. There are lots of methods in the literature for dealing with systematic missing data like this, but few of them are simple.
+
+Fortunately, this does not affect the relative ranking of each product, so our main results are safe.
