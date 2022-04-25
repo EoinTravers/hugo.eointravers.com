@@ -10,21 +10,21 @@ authors:
 superuser: true
 
 # Role/position
-role: Cognitive (Neuro)Scientist
+role: Senior Research Scientist
 
 # Organizations/Affiliations
 organizations:
-- name: Institute of Cognitive Neuroscience, UCL
-  url: "https://www.ucl.ac.uk/icn/"
+- name: Unmind Ltd.
+  url: "http://unmind.com"
 
 # Short bio (displayed in user profile at end of posts)
 bio:
 
 interests:
-- Decision-Making & Inference
-- Action & EEG
-- Metacognition & Consciousness
-- Bayes, Python & R
+- "<b>Science: </b>Decision-Making; Mental Health"
+- "<b>Coding: </b>R, Python, and JavaScript"
+- "<b>Data: </b>Experimentation, Measurement; Bayes, Computational Modelling, and Statistical Learning"
+
 
 education:
   courses:
@@ -37,10 +37,20 @@ education:
 
 experience:
   positions:
+  - position: Senior Research Scientist
+    institution: Unmind Ltd.
+    topic: Measuring Mental Health and Wellbeing
+    year: 2021 - Now
+    icon: briefcase
+  - position: Postdoc
+    institution: Institute of Cognitive Neuroscience, UCL
+    topic: Computational Psychiatry
+    year: 2020 - 2021
+    icon: briefcase
   - position: Postdoc
     institution: Institute of Cognitive Neuroscience, UCL
     topic: Self-Initiated Action
-    year: 2017 - Now
+    year: 2017 - 2020
     icon: briefcase
   - position: Postdoc
     institution: Institute of Philosophy, University of London
@@ -75,6 +85,9 @@ social:
 - icon: github
   icon_pack: fab
   link: https://github.com/eointravers
+- icon: linkedin
+  icon_pack: fab
+  link: https://www.linkedin.com/in/eoin-travers-43a780175/
 # Link to a PDF of your resume/CV from the About widget.
 # To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
 # - icon: cv
@@ -91,13 +104,9 @@ user_groups:
 - Visitors
 ---
 
-
-
-I'm a cognitive neuroscientist
-at the UCL
-[Institute of Cognitive Neuroscience](http://www.ucl.ac.uk/icn),
-working in the [Neuroscience and Mental Health group](https://www.ucl.ac.uk/icn/research/research-groups/neuroscience-and-mental-health).
-
-I'm currently looking for a position in data science/analysis in London.
-I know lots of things about data, statistics, machine learning, Bayes, web development, Python, R, minds, and brains.
-If you're looking for someone who knows these things, get in touch!
+I'm a cognitive scientist turned data scientist,
+currently working on better ways to measure mental health and wellbeing
+at [Unmind](https://unmind.com/).
+I have a PhD in cognitive psychology
+and did postdoctoral research in cognitive neuroscience (and a bit of philosophy.
+**I'm interested in using data to understand people.**
