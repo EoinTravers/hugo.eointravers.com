@@ -1,0 +1,400 @@
+---
+title: "Part 1"
+author: "Eoin Travers"
+output: 
+  html_document:
+    keep_md: TRUE
+    df_print: "paged"
+    code_folding: "show"
+---
+
+There is increasing interest in the problem of whether
+participant-specific parameters estimated
+by fitting a model to behavioural data are reliable.
+Most studies approach this using test-retest correlations:
+asking participants to complete a task twice,
+and seeing how consistent their parameter estimates are.
+
+However, there's a pretty simple way of estimating reliability from a single session,
+which can be applied any model that is fit to individual participants' data
+using maximum likelihood.
+I haven't seen this described in detail anywhere else, so I walk through it in this post.
+
+I suspect, but haven't gotten around to showing, that the same principle 
+can be applied to parameters estimated using Bayesian methods,
+or through multilevel modelling.
+
+While this approach works for any situation in which parameters are estimated 
+by maximum likelihood, I illustrate it first using a simple example - estimating the mean 
+of a Normal distribution - so that it can be compared to the traditional Cronbach’s α estimate.
+
+## Data
+
+First, let's simulate data from 1000 participants. 
+Each participant $p$ has a trait, $\mu_p$, 
+and values $\mu_i$ are Normally distributed in the population, 
+$\mu_p \sim \text{Normal}(0, 1)$. 
+Each participant gives us $n$ trials, 
+$x$, also Normally distributed, 
+$x \sim \text{Normal}(\mu_i, 1)$. 
+
+A nice property of this example is that 
+error variance is just $\sigma^2_e = \frac{1}{n}$,
+the standard error of measurement is the square root of this,
+$\sigma_e = \frac{1}{\sqrt{n}}$,
+and the true reliability is $\frac{1}{1 + \sigma^2_e} = \frac{n}{n + 1}$.
+
+```{r setup, message=F, warning=F}
+library(tidyverse)
+theme_set(theme_minimal(base_size = 16))
+sem = function(x) sd(x) / sqrt(length(x))
+
+lgnd = function(x, y){
+    theme(legend.position = c(x, y),  legend.justification = c(x, y))
+}
+set.seed(1234)
+```
+
+```{r}
+#' Simulate some data
+generate_data = function(n_participants = 50,
+                         n_trials = 10,
+                         sd_participant = 1,
+                         sd_trial = 1){
+  true_scores = rnorm(n_participants, 0, sd_participant)
+  data.frame(
+    participant = rep(1:n_participants, each = n_trials),
+    true_score  = rep(true_scores, each = n_trials),
+    trial_nr    = rep(1:n_trials, times = n_participants)) %>%
+    mutate(
+      x = rnorm(n(), true_score, sd_trial)
+    )
+}
+```
+
+```{r}
+n_participants = 50
+n_trials = 8
+sd_participant = 1
+sd_trial = 1
+data = generate_data(n_participants, n_trials,
+                     sd_participant, sd_trial)
+head(data)
+```
+
+The expected reliability for these simulation parameters is
+
+$$
+\text{Reliability} = \frac{\sigma_p^2}{\sigma_p^2 + \sigma_e^2}
+$$
+
+```{r}
+real_error_variance = sd_trial^2 / n_trials
+real_true_score_variance = sd_participant^2
+real_reliability = real_true_score_variance / (real_error_variance + real_true_score_variance)
+real_reliability
+```
+
+
+In the simple case where $\sigma^2_P = \sigma^2_{\epsilon} = 1$,
+this similifies to $\frac{N}{N+1}$.
+
+```{r}
+if(sd_trial == 1 & sd_participant == 1){
+  n_trials / (n_trials + 1)
+}
+```
+
+Let's start by aggregating our data...
+
+```{r}
+means = data %>% 
+  group_by(participant) %>% 
+  summarise(true_score = mean(true_score),
+            estimate = mean(x),
+            n = n(),
+            sd(x),
+            sem = sd(x) / sqrt(n()))
+head(means)
+```
+
+...and visualing it
+
+```{r}
+ggplot(data, aes(participant, x)) +
+  geom_point(alpha = .4) +
+  geom_point(data = means, mapping = aes(y = estimate), color = 'red', shape = 5) +
+  labs(x = 'Participant', y = 'Score',
+       caption = 'Red diamonds show mean scores')
+```
+
+```{r}
+df = means %>%
+  pivot_longer(c(true_score, estimate)) %>%
+  mutate(sem = ifelse(name == 'true_score', NA, sem),
+         what = ifelse(name == 'estimate', 'Estimate', 'True Score'))
+
+ggplot(df, aes(participant, value, color = what,
+               ymin = value - sem, ymax = value + sem)) +
+  geom_point() +
+  geom_linerange(alpha = .3) +
+  scale_color_manual(values = c('black', 'red')) +
+  labs(x = 'Participant', y = 'Value',
+       color = 'What') +
+  lgnd(0, 1)
+```
+```{r}
+ggplot(means, aes(true_score, estimate,
+                  ymin = estimate - sem,
+                  ymax = estimate + sem)) +
+  geom_point() +
+  geom_linerange(alpha = .2) +
+  geom_abline(linetype = 'dashed', intercept = 0, slope = 1) +
+  coord_equal() +
+  labs(x = 'True score',
+       y = 'Estimated score (± SEM)')
+```
+
+
+# Cronbach's alpha
+
+For this simple design, we can calculate α 
+by treating each trial as if it were a separate 
+item in a questionnaire.
+
+```{r}
+# Reshape data to have one row per participant, one column per trial
+wide_data = data %>%
+  select(participant, trial_nr, x) %>%
+  pivot_wider(names_from = trial_nr, values_from = x) %>%
+  select(-participant)
+```
+
+```{r}
+#' A simpler implentation that what psych::alpha() provides
+cronbach_alpha = function(X){
+  p = ncol(X)
+  sum_then_var <- var(rowSums(X))
+  var_then_sum =  sum(apply(X, 2, var))
+  (p/(p - 1)) * (1 - (var_then_sum/sum_then_var))
+}
+
+reliability_cronbach = cronbach_alpha(wide_data)
+reliability_cronbach
+```
+
+# Calculating Reliability from Standard Error
+
+More generally, we can estimate reliability using standard errors.
+This works because the standard error for each participant
+is the square root of error variance for that participant,
+and so the average squared standard error can be used as an estimate of $\sigma^2_e$.
+Note also that the variance of our observed estimates, $\sigma^2_o$,
+reflects both variance in true scores and error variance:
+$\sigma^2_o = \sigma^2_p + \sigma^2_e$.
+This approach is implemented in the function below.
+
+```{r}
+reliability_from_se = function(estimates, standard_errors){
+  total_var = var(estimates)
+  error_var = mean(standard_errors^2)
+  true_var = total_var - error_var
+  reliability = true_var / total_var
+  return(reliability)
+}
+```
+
+
+
+## Using Standard Error of the Mean
+
+Since we're just using mean values as estimates here,
+we can use the standard error of the mean here.
+
+```{r}
+# Reminder of how we calculated SEM
+means = data %>% 
+  group_by(participant) %>% 
+  summarise(estimate = mean(x),
+            n = n(),
+            sd = sd(x),
+            sem = sd / sqrt(n))
+```
+
+```{r}
+reliability_from_se(means$estimate, means$sem)
+```
+
+## Confidence Intervals for Reliability Estimates
+
+We can easily obtain confidence intervals for these reliability estimates by bootstrapping.
+
+```{r}
+calculate_reliability = function(estimates, standard_errors,
+                                 boostrap = TRUE, n_bootstraps = 500){
+  .n = length(estimates)
+  .indices = 1:.n
+  func = function(i){
+    bootstrap_indices = sample(.indices, .n, replace = T)
+    reliability_from_se(estimates[bootstrap_indices],
+                        standard_errors[bootstrap_indices])
+  }
+  bootstrap_estimates = map_dbl(1:n_bootstraps, func)
+  ci = quantile(bootstrap_estimates, c(.025, .975))
+  output = data.frame(
+    reliability = reliability_from_se(estimates, standard_errors),
+    se = sd(bootstrap_estimates)) %>%
+    mutate(ci.95.low = ci[1],
+           ci.95.high = ci[2])
+  return(output)
+}
+
+calculate_reliability(means$estimate, means$sem)
+```
+
+
+# Using Maximum Likelihood
+
+If we're fitting a more complicated model for each participant
+using maximum-likelihood estimation,
+we can use Fisher information to estimate the standard error and error variance.
+This method is completely general,
+in that it can be applied to any model estimated by maximum likelihood.
+
+> Note that this gives a very slightly different result
+> than the standard error of measurement approach.
+> This is because of a subtle quirk in that
+> the maximum likelihood estimate of $\sigma^2_p$
+> is not an unbiased estimator
+> (explained [here](https://stats.stackexchange.com/q/563966/42952)),
+> but it's not worth worrying about.
+
+```{r}
+# This is my general-purpose wrapper around R's optimisation routines,
+# for maximum-likelihood estimation
+fit_model = function(.data, 
+                     loglik_func, 
+                     par_names, 
+                     starting_values = NULL,
+                     bounds = NULL){
+  if(is.null(starting_values)){
+    starting_values = rep(1, length(par_names))
+  }
+  if(!is.null(bounds)){
+    # Bounded optimization with L-BFGS-B
+    k = length(par_names)
+    lower = rep(-Inf, k)
+    upper = rep(Inf, k)
+    for(p in names(bounds)){
+      ix = match(p, par_names)
+      lower[ix] = bounds[[p]][1]
+      upper[ix] = bounds[[p]][2]
+    }
+    # Wrap loglik_func to avoid NA (needed for L-BFGS-B)
+    .loglik_func = function(.data, pars){
+      ll = loglik_func(.data, pars)
+      ifelse(is.na(ll), -9e9, ll)
+    }
+    fit = optim(par = starting_values, 
+                fn = .loglik_func,
+                control = list(fnscale = -1),
+                .data = .data, hessian = T,
+                lower = lower, upper = upper,
+                method = 'L-BFGS-B')
+  } else {
+    fit = optim(par = starting_values, 
+                fn = loglik_func,
+                control = list(fnscale = -1),
+                .data = .data, hessian = T)
+  }
+  stopifnot(length(fit$par) == length(par_names))
+  # Calculate standard error by inverting the Hessian and taking square root
+  fisher_information = solve(-fit$hessian)
+  se = sqrt(diag(fisher_information))
+  output = data.frame(
+    term = par_names,
+    estimate = fit$par,
+    se = se
+  )
+  return(output)
+}
+```
+
+
+```{r}
+#' Calculate likelihood of participant's data, given parameters mu and sigma
+loglik_normal = function(.data, pars){
+  mu = pars[1]
+  sigma = pars[2]
+  loglik = sum(dnorm(.data$x, mu, sigma, log = T))
+  loglik
+}
+
+parameter_estimates = data %>%
+  nest(dfs = -participant) %>%
+  mutate(fits = map(dfs, fit_model,
+                    loglik_func = loglik_normal, 
+                    par_names = c('mu', 'sigma'))) %>%
+  unnest(fits) %>%
+  select(-dfs)
+head(parameter_estimates)
+```
+
+
+```{r}
+mu_estimates = filter(parameter_estimates, term == 'mu')
+calculate_reliability(mu_estimates$estimate, mu_estimates$se)
+```
+
+## Bayesian Estimation
+
+Unfortunately, this approach doesn't work for parameters that are 
+estimated using Bayesian methods.
+This is because the priors used for Bayesian estimation 
+reduce both $\sigma_p$ and $\sigma_e$, but not to the same degree.
+There might prove to be some way of adapting this approach
+to work with Bayesian estimation, but I don't kn ow what it would be.
+
+
+# Linear Mixed Models
+
+As a side note, it's also possible to estimate reliability using linear mixed models (LMMs)
+where the parameter of interest varies between participants as a random effect.
+
+
+```{r}
+library(lme4)
+mixed_model = lmer(x ~ 1 + (1|participant), data = data)
+summary(mixed_model)
+```
+
+```{r}
+mixed_model_varcor = VarCorr(mixed_model) %>% data.frame()
+mm_true_score_variance = mixed_model_varcor$vcov[1]
+```
+
+In a LMM, true score variance $\sigma_p$ is estimated directly,
+and reported in the model summary (a value `r `mm_true_score_variance` here).
+Error variance can be extracted from the model as follows...
+
+```{r}
+rfx = ranef(mixed_model, condVar = T)
+mm_error_variance = rfx$participant %>%
+  attr('postVar') %>%
+  c() %>%
+  mean()
+```
+
+...or, more simply, using the `arm` package:
+
+```{r}
+mm_error_variance = mean(arm::se.ranef(mixed_model)$participant^2)
+```
+
+Reliability can then be calculated as before
+
+```{r}
+mm_true_score_variance / (mm_true_score_variance + mm_error_variance)
+```
+
+

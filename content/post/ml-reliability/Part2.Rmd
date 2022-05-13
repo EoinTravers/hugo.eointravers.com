@@ -1,0 +1,320 @@
+---
+title: "Part 2"
+author: "Eoin Travers"
+output: 
+  html_document:
+    keep_md: TRUE
+    df_print: "paged"
+    code_folding: "show"
+---
+
+
+```{r duplicates}
+library(tidyverse)
+theme_set(theme_minimal(base_size = 16))
+set.seed(1234)
+
+fit_model = function(.data, 
+                     loglik_func, 
+                     par_names, 
+                     starting_values = NULL,
+                     bounds = NULL){
+  if(is.null(starting_values)){
+    starting_values = rep(1, length(par_names))
+  }
+  if(!is.null(bounds)){
+    # Bounded optimization with L-BFGS-B
+    k = length(par_names)
+    lower = rep(-Inf, k)
+    upper = rep(Inf, k)
+    for(p in names(bounds)){
+      ix = match(p, par_names)
+      lower[ix] = bounds[[p]][1]
+      upper[ix] = bounds[[p]][2]
+    }
+    # Wrap loglik_func to avoid NA (needed for L-BFGS-B)
+    .loglik_func = function(.data, pars){
+      ll = loglik_func(.data, pars)
+      ifelse(is.na(ll), -9e9, ll)
+    }
+    fit = optim(par = starting_values, 
+                fn = .loglik_func,
+                control = list(fnscale = -1),
+                .data = .data, hessian = T,
+                lower = lower, upper = upper,
+                method = 'L-BFGS-B')
+  } else {
+    fit = optim(par = starting_values, 
+                fn = loglik_func,
+                control = list(fnscale = -1),
+                .data = .data, hessian = T)
+  }
+  stopifnot(length(fit$par) == length(par_names))
+  # Calculate standard error by inverting the Hessian and taking square root
+  fisher_information = solve(-fit$hessian)
+  se = sqrt(diag(fisher_information))
+  output = data.frame(
+    term = par_names,
+    estimate = fit$par,
+    se = se
+  )
+  return(output)
+}
+
+reliability_from_se = function(estimates, standard_errors){
+  total_var = var(estimates)
+  error_var = mean(standard_errors^2)
+  true_var = total_var - error_var
+  reliability = true_var / total_var
+  return(reliability)
+}
+
+calculate_reliability = function(estimates, standard_errors,
+                                 boostrap = TRUE, n_bootstraps = 500){
+  .n = length(estimates)
+  .indices = 1:.n
+  func = function(i, estimate, ses){
+    bootstrap_indices = sample(.indices, .n, replace = T)
+    reliability_from_se(estimates[bootstrap_indices],
+                        standard_errors[bootstrap_indices])
+  }
+  bootstrap_estimates = map_dbl(1:n_bootstraps, func)
+  ci = quantile(bootstrap_estimates, c(.025, .975))
+  output = data.frame(
+    reliability = reliability_from_se(estimates, standard_errors),
+    se = sd(bootstrap_estimates)) %>%
+    mutate(ci.95.low = ci[1],
+           ci.95.high = ci[2])
+  return(output)
+}
+
+```
+
+# Real Data
+
+To finish, here's the same approach applied to some real data:
+the much-analysed Stroop task data from [XXX].
+(I'm using preprocesed data from <<https://github.com/Nathaniel-Haines/Reliability_2020>>).
+
+```{r}
+all_data = readRDS('data/long_format_all.rds')
+## Wrong!
+# stroop = rbind(
+#   all_data$`Study1-Stroop` %>% mutate(session = 1),
+#   all_data$`Study2-Stroop` %>% mutate(session = 2)
+# )
+stroop = all_data$`Study1-Stroop` %>%
+  mutate(condition = factor(Condition, levels=0:2, 
+                            labels = c('Congruent', 'Neutral', 'Incongruent'))) %>%
+  select(participant = subj_num,
+         session = Time,
+         block = Block,
+         trial = Trial,
+         condition,
+         accuracy = Correct,
+         rt = RT)
+stroop1 = filter(stroop, session == 1)  
+# stroop1 = all_data$`Study1-Stroop`
+```
+
+First, we need to define our model:
+a function that takes a participant's data and a set of parameters as inputs, 
+and returns the log-likelihood of that data for those parameters
+under the model in question.
+For illustration, I'm using a simple model where
+scores are Normally distributed in each condition,
+means differ between conditions, but standard deviations are the same
+(e.g. a simple t-test or linear model that we could 
+have fit using the `lm()` function anyway).
+
+```{r}
+loglik_mean_shift = function(.data, pars){
+  mu_congruent = pars[1]
+  sigma = pars[2]
+  d_mu = pars[3]
+  ll1 = dnorm(.data$Congruent, mu_congruent, sigma, log=T) %>% sum()
+  ll2 = dnorm(.data$Incongruent, mu_congruent + d_mu, sigma, log=T) %>% sum()
+  ll1 + ll2
+}
+
+prepare_data = function(.subject_data){
+  df = .subject_data %>% filter(accuracy == 1)
+  split(df$rt, df$condition)
+}
+
+# Test model on single participant's data
+.subject_data = filter(stroop1, participant == 1)
+.data = prepare_data(.subject_data)
+fit_model(.data, loglik_mean_shift, 
+          c('mu_congruent', 'sigma', 'd_mu'))
+```
+
+Then, we can fit it to every participant
+using a little bit of `purrr` magic for the preprocessing).
+(Note that warnings are suppressed for the code block below)
+
+```{r warning=FALSE}
+# Apply to all participants
+participant_model_fits = stroop %>%
+  nest(dfs = -c(participant)) %>%
+  mutate(
+    model_datas = map(dfs, prepare_data),
+    model_fits = map(model_datas, fit_model, 
+                     loglik_func = loglik_mean_shift, 
+                     par_names = c('mu_congruent', 'sigma', 'd_mu')))
+    
+participant_estimates = participant_model_fits %>%
+  select(participant, model_fits) %>%
+  unnest(model_fits)
+head(participant_estimates)
+```
+...and extract out the difference in means, the effect we care about.
+
+```{r}
+participant_effects = participant_estimates %>% filter(term == 'd_mu')
+
+plot_ascending = function(df, value_col, std_err_col){
+  plot_df = df %>%
+    arrange({{value_col}}) %>%
+    mutate(.order = 1:n(),
+           estimate = {{value_col}},
+           low = {{value_col}} - {{std_err_col}},
+           high = {{value_col}} + {{std_err_col}})
+  
+  ggplot(plot_df, aes(.order, estimate, ymin = low, ymax = high)) +
+    geom_point() +
+    geom_linerange() +
+    geom_hline(linetype = 'dashed', yintercept = 0) +
+    labs(x = 'Participant')
+}
+
+participant_effects %>%
+  plot_ascending(estimate, se) +
+  labs(y = 'Difference in Means (±SE)')
+```
+
+
+We can then plug these estimates into our function.
+
+```{r}
+calculate_reliability(participant_effects$estimate, participant_effects$se)
+```
+
+While we're here, let's try a more complex model,the shifted lognormal, 
+which has close links to the Wald diffusion model.
+This model is discussed in more detail by [Haines et al (2021)](),
+who fit it as part of a multilevel Bayesian model.
+The simple form of this model has three parameters:
+$\mu$ (`mu`), which we can think of as reflecting the average decision time (on the log scale),
+$\sigma$, (`sigma`), reflecting the variability in decision time,
+and $\delta$ (`delta`), reflecting constant non-decision time that is added to the response time.
+We allow $\mu$ and $\sigma$ to differ between congruent and incongruent trials for each participant,
+and use the difference in $\mu$ between conditions as our measure of (a lack of) inhibitory control.
+
+```{r}
+# .shiftlnorm_lpdf = function(x, delta, mu, sigma){
+#   -log((x - delta)*sigma*sqrt(2*pi)) - (log(x - delta) - mu)^2 / (2*sigma^2)
+# }
+
+shiftlnorm_lpdf = function(x, delta, mu, sigma){
+   -log((x - delta)*sigma*sqrt(2*pi)) - (log(x - delta) - mu)^2 / (2*sigma^2)
+  # suppressWarnings(.shiftlnorm_lpdf(x, delta, mu, sigma))
+}
+
+
+loglik_shiftlnorm = function(.data, pars) {
+  # We parameterise mu and sigma in terms of their average, 
+  # and the difference of each condition from the average, 
+  # to prevent parameters from trading off against each other as much as possible
+  delta = pars[1]
+  average_mu = pars[2]
+  average_sigma = pars[3]
+  effect_mu = pars[4]
+  effect_sigma = pars[5]
+  mu1 = average_mu - .5 * effect_mu
+  mu2 = average_mu + .5 * effect_mu
+  sigma1 = average_sigma - .5 * effect_sigma
+  sigma2 = average_sigma + .5 * effect_sigma
+  loglik1 = shiftlnorm_lpdf(.data$Congruent, delta, mu1, sigma1) %>% suppressWarnings() %>% sum()
+  loglik2 = shiftlnorm_lpdf(.data$Incongruent, delta, mu2, sigma2) %>% suppressWarnings() %>% sum()
+  return(loglik1 + loglik2)
+}
+par_names = c('delta', 'average_mu', 'average_sigma', 'effect_mu', 'effect_sigma')
+starting_values = c(0, 0, 1, 0, 0)
+bounds = list(delta = c(0, Inf),
+              average_sigma = c(0, Inf))
+```
+
+Test the model out with a single participant:
+
+```{r}
+fit_model(.data, loglik_shiftlnorm, par_names, starting_values, bounds = bounds)
+```
+
+Fit to everyone:
+
+```{r}
+participant_model_fits2 = stroop1 %>%
+  nest(dfs = -participant) %>%
+  mutate(
+    model_datas = map(dfs, prepare_data),
+    model_fits = map(model_datas, fit_model, 
+                     loglik_func = loglik_shiftlnorm, 
+                     par_names = par_names,
+                     starting_values = starting_values,
+                     bounds = bounds))
+    
+participant_estimates2 = participant_model_fits2 %>%
+  select(participant, model_fits) %>%
+  unnest(model_fits)
+head(participant_estimates2, 10)
+```
+
+Examine results:
+
+```{r}
+participant_estimates2 %>%
+  mutate(term = factor(term, levels = par_names)) %>% # Change order 
+  ggplot(aes(term, estimate)) +
+  geom_point(position = position_jitter(width = .2), alpha = .5) +
+  geom_hline(yintercept = 0, linetype = 'dashed') +
+  labs(x = 'Term', y = 'Estimate')
+```
+
+Check for parameter correlations...
+
+```{r}
+df = participant_estimates2 %>%
+  select(participant, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  select(-participant)
+cor(df) %>% round(2)
+```
+
+```{r}
+plot(df)
+```
+
+We take the difference in $\mu$ parameters between conditions,
+labelled `effect_mu`, as our parameter of interest.
+
+```{r}
+b_mu = participant_estimates2 %>% filter(term == 'effect_mu')
+
+b_mu %>%
+  plot_ascending(estimate, se) +
+  labs(y = 'Change in μ')
+```
+
+```{r}
+calculate_reliability(b_mu$estimate, b_mu$se)
+```
+
+Reliability seems to be lower for this more complicated model.
+This is perhaps not surprising, since models with more parameters
+(5 per participant here, versus 3 above)
+will in general have greater error variance.
+However, this might still be a price worth paying if the parameter from this model
+is more closely aligned with the psychological construct we're trying to measure
+- that is, it is more *valid*.
+
