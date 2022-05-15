@@ -1,8 +1,10 @@
 ---
 title: "A Reliability Coefficient for Maximum-Likelihood Parameter Estimates"
+summary: If you have standard errors, you can get reliability
 author: admin
 date: 2022-05-13
 plugins: [pagedtable, toggle-code]
+image: imgs/sim-data3.png
 ---
 
 <aside>
@@ -34,10 +36,6 @@ However, there's a pretty simple way of estimating reliability from a single ses
 which can be applied any model that is fit to individual participants' data
 using maximum likelihood.
 I haven't seen this described in detail anywhere else, so I walk through it in this post.
-
-I suspect, but haven't gotten around to showing, that the same principle
-can be applied to parameters estimated using Bayesian methods,
-or through multilevel modelling.
 
 While this approach works for any situation in which parameters are estimated
 by maximum likelihood, I illustrate it first using a simple example - estimating the mean
@@ -454,7 +452,7 @@ estimated using Bayesian methods.
 This is because the priors used for Bayesian estimation
 reduce both $\sigma_p$ and $\sigma_e$, but not to the same degree.
 There might prove to be some way of adapting this approach
-to work with Bayesian estimation, but I don't kn ow what it would be.
+to work with Bayesian estimation, but I don't know what it would be.
 
 
 # Linear Mixed Models
@@ -876,3 +874,10 @@ and then verifying that the estimated reliability
 approximately matches the actual squared correlations
 between true parameter values and estimates.
 I'm not sure, but ideally this might be worth doing for every model this approach is applied to.
+
+## Previous Work
+
+I haven't been able to find any other work describing this kind of approach,
+maybe in part because googling "maximum likelihood reliability"
+brings up a lot of irrelevant stuff. I'm very keen to hear from anyone
+who knows where to look.
